@@ -10,12 +10,8 @@ public class Employee implements Comparable<Employee>{
     private String lastName;
 
     public Employee() {
-    }
-
-    public Employee(int id, String firstName, String lastName) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        firstName = "";
+        lastName = "";
     }
 
     public int getId() {
@@ -60,6 +56,9 @@ public class Employee implements Comparable<Employee>{
 
     @Override
     public String toString() {
-        return "";
+        if (firstName.equals("") || lastName.equals("")) {
+            return "#" + id;
+        }
+        return firstName + " " + lastName + ", #" + id;
     }
 }

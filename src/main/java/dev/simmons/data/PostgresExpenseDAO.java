@@ -105,7 +105,24 @@ public class PostgresExpenseDAO implements ExpenseDAO{
     @Override
     public List<Expense> getExpensesByStatus(Expense.Status status) {
         try (Connection conn = PostgresConnection.getConnection()) {
+            String sql = "select * from expense where status = ?;";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setString(1, status.name());
 
+            ResultSet rs = statement.executeQuery();
+            List<Expense> expenses = new ArrayList<>();
+            Expense exp;
+            while (rs.next()) {
+                    exp = new Expense();
+                    exp.setId(rs.getInt("expense_id"));
+                    exp.setStatus(Expense.Status.valueOf(rs.getString("status")));
+                    exp.setIssuer(rs.getInt("issuer"));
+                    exp.setDate(rs.getLong("date"));
+                    exp.setAmount(rs.getLong("amount"));
+                    expenses.add(exp);
+            }
+
+            return expenses;
         } catch (SQLException se) {
             Logger.log(Logger.Level.ERROR, se);
         }
@@ -115,7 +132,7 @@ public class PostgresExpenseDAO implements ExpenseDAO{
     @Override
     public List<Expense> getAllEmployeeExpenses(int employeeId) {
         try (Connection conn = PostgresConnection.getConnection()) {
-            String sql = "select * from expense where expense_id = ?;";
+            String sql = "select * from expense where issuer = ?;";
             PreparedStatement statement = conn.prepareStatement(sql);
             statement.setInt(1, employeeId);
 
@@ -140,7 +157,7 @@ public class PostgresExpenseDAO implements ExpenseDAO{
     }
 
     @Override
-    public Expense replaceExpense(Expense expense) throws ExpenseNotPendingException {
+    public Expense replaceExpense(Expense expense) {
         if (expense.getStatus() != Expense.Status.PENDING && expense.getIssuer() <= 0) {
             throw new InvalidExpenseException("Unable to submit a non-pending expense not yet assigned an issuer.");
         }

@@ -3,6 +3,7 @@ package dev.simmons.data;
 import dev.simmons.entities.Employee;
 import dev.simmons.entities.Expense;
 import dev.simmons.exceptions.ExpenseNotPendingException;
+import dev.simmons.exceptions.InvalidExpenseException;
 import dev.simmons.exceptions.NonpositiveExpenseException;
 import org.junit.jupiter.api.*;
 
@@ -87,6 +88,12 @@ public class TestExpenseDAO {
     public void replaceApprovedOrDeniedFails() {
         final Expense approved = new Expense();
         final Expense denied = new Expense();
+        Employee emp = new Employee();
+        emp.setLastName("test");
+        emp.setFirstName("test");
+        emp = (new PostgresEmployeeDAO()).createEmployee(emp);
+        Assertions.assertNotNull(emp);
+
         approved.setDate(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
         denied.setDate(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
 
@@ -96,6 +103,17 @@ public class TestExpenseDAO {
         approved.setStatus(Expense.Status.APPROVED);
         denied.setStatus(Expense.Status.DENIED);
 
+        Assertions.assertThrows(InvalidExpenseException.class, () -> {
+            expDao.createExpense(approved);
+        }, "Issues with invalid approved expense being created in test - invalidExpense was expected but not thrown.");
+        Assertions.assertThrows(InvalidExpenseException.class, () -> {
+            expDao.createExpense(denied);
+        }, "Issues with invalid denied expense being created in test - invalidExpense was expected but not thrown.");
+
+
+        approved.setIssuer(emp.getId());
+        denied.setIssuer(emp.getId());
+
         Expense received = expDao.createExpense(approved);
         Assertions.assertNotNull(received, "Issue with approved createExpense method in test 6: expected not null.");
         approved.setId(received.getId());
@@ -104,12 +122,12 @@ public class TestExpenseDAO {
         denied.setId(received.getId());
 
         Assertions.assertThrows(ExpenseNotPendingException.class, () -> {
-            approved.setAmount(0);
+            approved.setAmount(500);
             Assertions.assertNull(expDao.replaceExpense(approved));
         }, "Issue with the replaceExpense method in test 6: was able to edit an approved expense.");
 
         Assertions.assertThrows(ExpenseNotPendingException.class, () -> {
-            denied.setAmount(0);
+            denied.setAmount(500);
             Assertions.assertNull(expDao.replaceExpense(denied));
         }, "Issue with the replaceExpense method in test 6: was able to edit a denied expense.");
 
@@ -145,8 +163,14 @@ public class TestExpenseDAO {
         exp.setAmount(100);
         exp.setStatus(Expense.Status.PENDING);
         exp.setIssuer(0);
-        Expense received = expDao.createExpense(exp);
-        Assertions.assertNotNull(received);
+        exp = expDao.createExpense(exp);
+        Assertions.assertNotNull(exp);
+
+        Expense received = new Expense();
+        received.setId(exp.getId());
+        received.setDate(exp.getDate());
+        received.setStatus(exp.getStatus());
+        received.setIssuer(exp.getIssuer());
         received.setAmount(-100);
         Assertions.assertThrows(NonpositiveExpenseException.class, () -> {
             Assertions.assertNull(expDao.replaceExpense(received));

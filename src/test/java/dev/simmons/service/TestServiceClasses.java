@@ -180,26 +180,27 @@ public class TestServiceClasses {
         });
 
         int index = rand.nextInt(pending.size());
-        Expense pendingExpense = pending.get(index);
-
-        index = rand.nextInt(approved.size());
-        Expense approvedExpense = approved.get(index);
-
-        index = rand.nextInt(denied.size());
-        Expense deniedExpense = denied.get(index);
+        Expense pendingExpense = new Expense(pending.get(index));
 
         pendingExpense.setStatus(Expense.Status.DENIED);
         Expense received = service.replaceExpense(pendingExpense);
         Assertions.assertNotNull(received);
         Assertions.assertEquals(Expense.Status.DENIED, received.getStatus());
 
+        index = rand.nextInt(approved.size());
+        Expense approvedExpense = new Expense(approved.get(index));
+
         Assertions.assertThrows(ExpenseNotPendingException.class, () -> {
-            approvedExpense.setAmount(0);
+            approvedExpense.setAmount(550);
             Assertions.assertNull(service.replaceExpense(approvedExpense));
         }, "Replacing approved expense did not throw an exception.");
 
+
+        index = rand.nextInt(denied.size());
+        Expense deniedExpense = new Expense(denied.get(index));
+
         Assertions.assertThrows(ExpenseNotPendingException.class, () -> {
-            deniedExpense.setAmount(0);
+            deniedExpense.setAmount(550);
             Assertions.assertNull(service.replaceExpense(deniedExpense));
         }, "Replacing denied expense did not throw an exception.");
     }

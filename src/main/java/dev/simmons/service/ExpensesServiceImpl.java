@@ -43,7 +43,7 @@ public class ExpensesServiceImpl implements ExpensesService{
 
     @Override
     public List<Expense> getExpensesByStatus(Expense.Status status) {
-        return null;
+        return expDao.getExpensesByStatus(status);
     }
 
     @Override

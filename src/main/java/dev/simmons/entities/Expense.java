@@ -14,12 +14,12 @@ public class Expense implements Comparable<Expense>{
         this.status = Status.PENDING;
     }
 
-    public Expense(int id, long amount, Status status, long date, int issuer) {
-        this.id = id;
-        this.amount = amount;
-        this.status = status;
-        this.date = date;
-        this.issuer = issuer;
+    public Expense(Expense copy) {
+        this.status = copy.getStatus();
+        this.id = copy.getId();
+        this.amount = copy.getAmount();
+        this.issuer = copy.getIssuer();
+        this.date = copy.getDate();
     }
 
     public int getId() {
@@ -64,7 +64,7 @@ public class Expense implements Comparable<Expense>{
 
     @Override
     public String toString() {
-        DecimalFormat df = new DecimalFormat("#.00");
+        DecimalFormat df = new DecimalFormat("0.00");
         return "Expense(" + getId() + ") for $" + df.format(getAmount()/100.0);
     }
 
