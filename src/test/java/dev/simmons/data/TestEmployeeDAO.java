@@ -1,6 +1,7 @@
 package dev.simmons.data;
 
 import dev.simmons.entities.Employee;
+import dev.simmons.exceptions.InvalidEmployeeException;
 import org.junit.jupiter.api.*;
 import java.util.List;
 
@@ -13,6 +14,10 @@ public class TestEmployeeDAO {
     public void createAnEmployee() {
         empDao = new PostgresEmployeeDAO();
         Employee emp = new Employee();
+
+        Assertions.assertThrows(InvalidEmployeeException.class, () -> {
+            empDao.createEmployee(emp);
+        });
         emp.setFirstName("Testing");
         emp.setLastName("Testing");
         Employee received = empDao.createEmployee(emp);

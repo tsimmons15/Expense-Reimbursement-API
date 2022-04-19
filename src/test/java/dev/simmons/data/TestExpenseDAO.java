@@ -16,7 +16,6 @@ public class TestExpenseDAO {
     private static ExpenseDAO expDao;
     private static Expense expense;
 
-
     @BeforeAll
     public static void setup() {
         expDao = new PostgresExpenseDAO();
@@ -51,12 +50,12 @@ public class TestExpenseDAO {
     @Test
     @Order(3)
     public void getExpensesByStatus() {
-        List<Expense> expenses = expDao.getExpensesByStatus(Expense.Status.APPROVED);
+        List<Expense> expenses = expDao.getExpensesByStatus(Expense.Status.PENDING);
         Assertions.assertNotNull(expenses);
         Assertions.assertNotEquals(0, expenses.size(), "Issue with the getExpensesByStatus method in test 4: expected list length > 0");
 
         for (Expense e : expenses) {
-            Assertions.assertEquals(Expense.Status.APPROVED, e.getStatus());
+            Assertions.assertEquals(Expense.Status.PENDING, e.getStatus());
         }
     }
 
@@ -81,6 +80,12 @@ public class TestExpenseDAO {
         for(Expense e : expenses) {
             Assertions.assertEquals(employee.getId(), e.getIssuer(), "Issue with test 5, the queries where clause: expenses from employees other than the requested one returned.");
         }
+
+        expense.setIssuer(0);
+        expense = expDao.replaceExpense(expense);
+        Assertions.assertNotNull(expense);
+        Assertions.assertTrue(empDao.deleteEmployee(employee.getId()));
+        Assertions.assertNull(empDao.getEmployeeById(employee.getId()));
     }
 
     @Test
@@ -133,8 +138,10 @@ public class TestExpenseDAO {
 
         Assertions.assertTrue(expDao.deleteExpense(approved.getId()), "Issue with the deleteExpense method in test 6: unable to delete approved expense.");
         Assertions.assertTrue(expDao.deleteExpense(denied.getId()), "Issue with the deleteExpense method in test 6: unable to delete approved expense.");
+        Assertions.assertTrue((new PostgresEmployeeDAO()).deleteEmployee(emp.getId()));
         Assertions.assertNull(expDao.getExpenseById(approved.getId()), "Issue with the getExpenseById method in test 6: deleted approved expense still found.");
         Assertions.assertNull(expDao.getExpenseById(denied.getId()), "Issue with the getExpenseById method in test 6: deleted denied expense still found.");
+        Assertions.assertNull((new PostgresEmployeeDAO()).getEmployeeById(emp.getId()));
     }
 
 

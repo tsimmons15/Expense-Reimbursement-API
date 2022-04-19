@@ -3,6 +3,7 @@ package dev.simmons.data;
 import dev.simmons.entities.Expense;
 import dev.simmons.exceptions.ExpenseNotPendingException;
 import dev.simmons.exceptions.InvalidExpenseException;
+import dev.simmons.exceptions.InvalidExpenseStatusException;
 import dev.simmons.exceptions.NonpositiveExpenseException;
 import dev.simmons.utilities.connection.PostgresConnection;
 import dev.simmons.utilities.logging.Logger;
@@ -15,12 +16,15 @@ import java.util.List;
 public class PostgresExpenseDAO implements ExpenseDAO{
     @Override
     public Expense createExpense(Expense expense) {
+        if (expense.getStatus() == null) {
+            throw new InvalidExpenseStatusException("Unable to parse the status passed in. Check for typos.");
+        }
         if (expense.getStatus() != Expense.Status.PENDING && expense.getIssuer() == 0) {
             // Invalid expense: won't be able to edit (can't edit a non-pending expense) but can't assign to an employee.
             throw new InvalidExpenseException("Unable to submit a non-pending expense not yet assigned an issuer.");
         }
 
-        if (expense.getAmount() < 0) {
+        if (expense.getAmount() <= 0) {
             throw new NonpositiveExpenseException(expense.getAmount());
         }
 

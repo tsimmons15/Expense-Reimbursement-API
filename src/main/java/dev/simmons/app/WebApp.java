@@ -1,5 +1,6 @@
 package dev.simmons.app;
 
+import com.google.gson.JsonSyntaxException;
 import dev.simmons.data.PostgresEmployeeDAO;
 import dev.simmons.data.PostgresExpenseDAO;
 import dev.simmons.entities.Employee;
@@ -10,8 +11,10 @@ import dev.simmons.service.ExpensesServiceImpl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dev.simmons.utilities.logging.Logger;
 import io.javalin.Javalin;
 import java.util.List;
+import java.util.Objects;
 
 public class WebApp {
     private static ExpensesService service;
@@ -102,8 +105,11 @@ public class WebApp {
         });
         server.post("/employees/{index}/expenses", ctx -> {
             String param = ctx.pathParam("index") + "";
-            int id = Integer.parseInt(param);
-            Expense exp = gson.fromJson(ctx.body(), Expense.class);
+            int id = 0;
+            Expense exp = null;
+            id = Integer.parseInt(param);
+            exp = gson.fromJson(ctx.body(), Expense.class);
+
             if (exp == null) {
                 ctx.status(500);
                 ctx.result("{\"error\":\"Unable to parse the provided expense. Check the syntax: '" + ctx.body() + "'\"}");
@@ -126,7 +132,18 @@ public class WebApp {
         });
 
         server.get("/expenses", ctx -> {
-            List<Expense> expenses = service.getAllExpenses();
+            List<Expense> expenses;
+            if (ctx.queryString() != null && !Objects.equals(ctx.queryString(), "")) {
+                String query = ctx.queryParam("status");
+                try {
+                    query = query.toUpperCase();
+                    expenses = service.getExpensesByStatus(Expense.Status.valueOf(query));
+                } catch (IllegalArgumentException | NullPointerException iae) {
+                    throw new InvalidExpenseStatusException("Unable to parse the status from query string: " + ctx.queryString());
+                }
+            } else {
+                expenses = service.getAllExpenses();
+            }
             if (expenses == null) {
                 ctx.status(500);
                 ctx.result("{\"error\":\"Unable to retrieve all expenses.\"}");
@@ -230,9 +247,18 @@ public class WebApp {
         /*
          * EXCEPTION HANDLING RESPONSES
          */
-        server.exception(NumberFormatException.class, (ex, ctx) -> {
+        server.exception(JsonSyntaxException.class, (ex, ctx) -> {
             ctx.status(400);
-            ctx.result("{\"error\":\"Unable to parse the index provided: " + ctx.path() + "\"}");
+            ctx.result("{\"error\":\"Error parsing request: assign expense to employee. Request to " + ctx.path() + " with body: (" + ctx.body() + ")\"}");
+            Logger.log(Logger.Level.ERROR, "Error parsing request: assign expense to employee. Request to " + ctx.path() + " with body: (" + ctx.body() + ")");
+        });
+        server.exception(InvalidExpenseStatusException.class, (ex, ctx) -> {
+           ctx.status(400);
+           if (ctx.queryString() != null) {
+               ctx.result("{\"error\":\"Unable to parse the query provided: " + ctx.queryString() + "\"}");
+           } else {
+               ctx.result("{\"error\":\"" + ex.getMessage() + "\"}");
+           }
         });
         server.exception(ExpenseNotPendingException.class, (ex, ctx) -> {
             ctx.status(400); // One of the 400s since the user is making a mistake
@@ -253,6 +279,10 @@ public class WebApp {
         server.exception(NoSuchEmployeeException.class, (ex, ctx) -> {
             ctx.status(404);
             ctx.result("{\"error\":\"" + ex.getMessage() + "\"}");
+        });
+        server.exception(InvalidEmployeeException.class, (ex, ctx) -> {
+           ctx.status(404);
+           ctx.result("{\"error\":\"" + ex.getMessage() + "\"}");
         });
 
 

@@ -1,6 +1,7 @@
 package dev.simmons.data;
 
 import dev.simmons.entities.Employee;
+import dev.simmons.exceptions.InvalidEmployeeException;
 import dev.simmons.utilities.connection.PostgresConnection;
 import dev.simmons.utilities.logging.Logger;
 
@@ -11,6 +12,10 @@ import java.util.List;
 public class PostgresEmployeeDAO implements EmployeeDAO{
     @Override
     public Employee createEmployee(Employee employee) {
+        if (employee.getFirstName().equals("") || employee.getLastName().equals("")) {
+            Logger.log(Logger.Level.WARNING, "Invalid employee name (\"" + employee.getFirstName() + "\", \"" + employee.getLastName() + "\").");
+            throw new InvalidEmployeeException("Invalid employee name (\"" + employee.getFirstName() + "\", \"" + employee.getLastName() + "\").");
+        }
         try (Connection conn = PostgresConnection.getConnection()) {
             String sql = "insert into employee (first_name, last_name) values (?,?);";
             PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);

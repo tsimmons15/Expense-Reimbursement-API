@@ -46,7 +46,7 @@ public class TestServiceClasses {
              exp.setDate(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
              exp.setAmount((long)(rand.nextDouble() * 10000));
              exp.setIssuer(id);
-             switch (rand.nextInt(Expense.Status.values().length)) {
+             switch (i%3) {
                  case 0:
                      exp.setStatus(Expense.Status.PENDING);
                      break;
@@ -180,12 +180,15 @@ public class TestServiceClasses {
         });
 
         int index = rand.nextInt(pending.size());
+        int temp = expenses.indexOf(pending.get(index));
         Expense pendingExpense = new Expense(pending.get(index));
 
         pendingExpense.setStatus(Expense.Status.DENIED);
         Expense received = service.replaceExpense(pendingExpense);
         Assertions.assertNotNull(received);
         Assertions.assertEquals(Expense.Status.DENIED, received.getStatus());
+
+        expenses.set(temp, received);
 
         index = rand.nextInt(approved.size());
         Expense approvedExpense = new Expense(approved.get(index));
