@@ -3,6 +3,7 @@ package dev.simmons.utilities.logging;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -30,10 +31,11 @@ public class LoggingTests {
     @Test
     public void logInfo() {
         Logger.log(Logger.Level.INFO, "How's your day?");
-        File file = new File(Logger.LOG_PATH);
+        Path path = Paths.get(Logger.LOG_DIR, Logger.LOG_FILE);
+        File file = new File(path.toString());
         Assertions.assertTrue(file.exists());
         try {
-            List<String> lines = Files.readAllLines(Paths.get(Logger.LOG_PATH));
+            List<String> lines = Files.readAllLines(path);
             String line = lines.get(lines.size() - 1);
             String[] pieces = line.split(" :: ");
             Assertions.assertTrue(line.startsWith("INFO :: "));
@@ -48,10 +50,11 @@ public class LoggingTests {
     @Test
     public void logDebug() {
         Logger.log(Logger.Level.DEBUG, "What's going on?");
-        File file = new File(Logger.LOG_PATH);
+        Path path = Paths.get(Logger.LOG_DIR, Logger.LOG_FILE);
+        File file = new File(path.toString());
         Assertions.assertTrue(file.exists());
         try {
-            List<String> lines = Files.readAllLines(Paths.get(Logger.LOG_PATH));
+            List<String> lines = Files.readAllLines(path);
             String line = lines.get(lines.size() - 1);
             String[] pieces = line.split(" :: ");
             Assertions.assertTrue(line.startsWith("DEBUG :: "));
@@ -66,10 +69,11 @@ public class LoggingTests {
     @Test
     public void logWarning() {
         Logger.log(Logger.Level.WARNING, "You better be careful.");
-        File file = new File(Logger.LOG_PATH);
+        Path path = Paths.get(Logger.LOG_DIR, Logger.LOG_FILE);
+        File file = new File(path.toString());
         Assertions.assertTrue(file.exists());
         try {
-            List<String> lines = Files.readAllLines(Paths.get(Logger.LOG_PATH));
+            List<String> lines = Files.readAllLines(path);
             String line = lines.get(lines.size() - 1);
             String[] pieces = line.split(" :: ");
             Assertions.assertTrue(line.startsWith("WARNING :: "));
@@ -84,10 +88,11 @@ public class LoggingTests {
     @Test
     public void logError() {
         Logger.log(Logger.Level.ERROR, "Well, now you've done it!");
-        File file = new File(Logger.LOG_PATH);
+        Path path = Paths.get(Logger.LOG_DIR, Logger.LOG_FILE);
+        File file = new File(path.toString());
         Assertions.assertTrue(file.exists());
         try {
-            List<String> lines = Files.readAllLines(Paths.get(Logger.LOG_PATH));
+            List<String> lines = Files.readAllLines(path);
             String line = lines.get(lines.size() - 1);
             String[] pieces = line.split(" :: ");
             Assertions.assertTrue(line.startsWith("ERROR :: "));

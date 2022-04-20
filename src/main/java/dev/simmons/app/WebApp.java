@@ -23,6 +23,10 @@ public class WebApp {
         Javalin server = Javalin.create();
         Gson gson = new GsonBuilder().create();
 
+        server.get("/", ctx -> {
+           ctx.status(200);
+        });
+
         server.post("/employees", ctx -> {
             Employee emp = gson.fromJson(ctx.body(), Employee.class);
             if (emp == null) {
@@ -104,6 +108,8 @@ public class WebApp {
             }
         });
         server.post("/employees/{index}/expenses", ctx -> {
+
+            
             String param = ctx.pathParam("index") + "";
             int id = 0;
             Expense exp = null;
@@ -114,6 +120,9 @@ public class WebApp {
                 ctx.status(500);
                 ctx.result("{\"error\":\"Unable to parse the provided expense. Check the syntax: '" + ctx.body() + "'\"}");
             } else {
+                if (exp.getId() > 0) {
+                    exp = service.getExpenseById(exp.getId());
+                }
                 exp.setIssuer(id);
                 Expense received;
                 if (exp.getId() > 0) {
@@ -286,6 +295,6 @@ public class WebApp {
         });
 
 
-        server.start(7070);
+        server.start(5000);
     }
 }
