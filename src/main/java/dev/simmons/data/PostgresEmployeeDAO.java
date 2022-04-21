@@ -1,7 +1,10 @@
 package dev.simmons.data;
 
 import dev.simmons.entities.Employee;
+import dev.simmons.exceptions.ExpenseNotPendingException;
 import dev.simmons.exceptions.InvalidEmployeeException;
+import dev.simmons.exceptions.NoSuchEmployeeException;
+import dev.simmons.exceptions.NoSuchExpenseException;
 import dev.simmons.utilities.connection.PostgresConnection;
 import dev.simmons.utilities.logging.Logger;
 
@@ -12,10 +15,6 @@ import java.util.List;
 public class PostgresEmployeeDAO implements EmployeeDAO{
     @Override
     public Employee createEmployee(Employee employee) {
-        if (employee.getFirstName().equals("") || employee.getLastName().equals("")) {
-            Logger.log(Logger.Level.WARNING, "Invalid employee name (\"" + employee.getFirstName() + "\", \"" + employee.getLastName() + "\").");
-            throw new InvalidEmployeeException("Invalid employee name (\"" + employee.getFirstName() + "\", \"" + employee.getLastName() + "\").");
-        }
         try (Connection conn = PostgresConnection.getConnection()) {
             String sql = "insert into employee (first_name, last_name) values (?,?);";
             PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -24,7 +23,7 @@ public class PostgresEmployeeDAO implements EmployeeDAO{
 
             int updated = statement.executeUpdate();
             if (updated != 1) {
-                Logger.log(Logger.Level.ERROR, "Unable to insert employe (" + employee + ").");
+                Logger.log(Logger.Level.WARNING, "Unable to insert employee (" + employee + ").");
                 return null;
             }
             ResultSet rs = statement.getGeneratedKeys();
@@ -55,6 +54,10 @@ public class PostgresEmployeeDAO implements EmployeeDAO{
 
             return employee;
         } catch (SQLException se) {
+            if (se.getSQLState().equals("24000")) {
+                Logger.log(Logger.Level.ERROR, "Search for non-existent employee with id " + id);
+                throw new NoSuchEmployeeException("No employee with id (" + id + ") was found. Make sure an employee with that id exists.");
+            }
             Logger.log(Logger.Level.ERROR, se);
         }
         return null;
@@ -95,8 +98,8 @@ public class PostgresEmployeeDAO implements EmployeeDAO{
 
             int updated = statement.executeUpdate();
             if (updated != 1) {
-                Logger.log(Logger.Level.ERROR, "Unable to update employee: (" + employee + ").");
-                return null;
+                Logger.log(Logger.Level.WARNING, "No employee (" + employee + ") found to update.");
+                throw new NoSuchEmployeeException("No employee matching (" + employee + ") was found. Please make sure the employee exists.");
             }
 
             return employee;
@@ -115,8 +118,8 @@ public class PostgresEmployeeDAO implements EmployeeDAO{
 
             int updated = statement.executeUpdate();
             if (updated != 1) {
-                Logger.log(Logger.Level.ERROR, "Unable to delete employee (" + id + ").");
-                return false;
+                Logger.log(Logger.Level.WARNING, "Employee (" + id + ") not found to delete.");
+                throw new NoSuchEmployeeException("Unable to delete employee (" + id + "). Check that an employee with that id exists.");
             }
 
             return true;

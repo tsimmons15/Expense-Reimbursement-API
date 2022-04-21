@@ -41,7 +41,7 @@ public class Logger {
             }*/
             String info = String.format("|| %s :: %s :: %s\n", level.name(), LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME), message);
             //Files.write(path, info.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-            System.out.println(info);
+            System.out.print(info);
 
         /*} catch (IOException ioe) {
             // How do you handle an exception in your logger?

@@ -199,7 +199,7 @@ public class WebApp {
                 Expense received = service.replaceExpense(expense);
                 if (received == null) {
                     ctx.status(500);
-                    ctx.result("{\"error\":\"Was unable to update the provided expense: " + expense + ".\"}");
+                    ctx.result("{\"error\":\"Was unable to update the provided expense: " + expense + ". Check that an expense with that id exists.\"}");
                 } else {
                     ctx.status(201);
                     ctx.result("{\"result\":\"Expense updated\"}");
@@ -293,7 +293,10 @@ public class WebApp {
            ctx.status(404);
            ctx.result("{\"error\":\"" + ex.getMessage() + "\"}");
         });
-
+        server.exception(EmployeeExpenseNotPendingException.class, (ex, ctx) -> {
+           ctx.status(400);
+           ctx.result("{\"error\":\"Unable to delete employee because they have an approved or denied expense request.\"}");
+        });
 
         server.start(5000);
     }

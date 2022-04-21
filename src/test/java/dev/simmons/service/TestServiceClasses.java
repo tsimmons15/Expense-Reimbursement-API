@@ -5,10 +5,9 @@ import dev.simmons.data.PostgresExpenseDAO;
 import dev.simmons.entities.Employee;
 import dev.simmons.entities.Expense;
 import dev.simmons.exceptions.ExpenseNotPendingException;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import dev.simmons.exceptions.InvalidExpenseException;
+import dev.simmons.exceptions.NonpositiveExpenseException;
+import org.junit.jupiter.api.*;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -22,6 +21,10 @@ public class TestServiceClasses {
     private static List<Employee> employees;
     private static List<Expense> expenses;
     private static Random rand;
+
+    private static final int employeeId = 1;
+    private static final int approvedId = 1;
+    private static final int deniedId = 2;
 
     @BeforeAll
     public static void setup() {
@@ -46,44 +49,14 @@ public class TestServiceClasses {
              exp.setDate(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
              exp.setAmount((long)(rand.nextDouble() * 10000));
              exp.setIssuer(id);
-             switch (i%3) {
-                 case 0:
-                     exp.setStatus(Expense.Status.PENDING);
-                     break;
-                 case 1:
-                     exp.setStatus(Expense.Status.APPROVED);
-                     break;
-                 case 2:
-                     exp.setStatus(Expense.Status.DENIED);
-                     break;
-             }
+             exp.setStatus(Expense.Status.PENDING);
              exp = service.createExpense(exp);
              Assertions.assertNotNull(exp);
              Assertions.assertNotEquals(0, exp.getId());
              expenses.add(exp);
         }
-        int id = employees.get(rand.nextInt(employees.size())).getId();
-        Expense exp = new Expense();
-        exp.setDate(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
-        exp.setAmount((long)(rand.nextDouble() * 10000));
-        exp.setIssuer(id);
-        exp.setStatus(Expense.Status.DENIED);
-        exp = service.createExpense(exp);
-        Assertions.assertNotNull(exp);
-        Assertions.assertNotEquals(0, exp.getId());
-        expenses.add(exp);
-
-        id = employees.get(rand.nextInt(employees.size())).getId();
-        exp = new Expense();
-        exp.setDate(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
-        exp.setAmount((long)(rand.nextDouble() * 10000));
-        exp.setIssuer(id);
-        exp.setStatus(Expense.Status.APPROVED);
-        exp = service.createExpense(exp);
-        Assertions.assertNotNull(exp);
-        Assertions.assertNotEquals(0, exp.getId());
-        expenses.add(exp);
     }
+
 
     @AfterAll
     public static void teardown() {
@@ -161,50 +134,64 @@ public class TestServiceClasses {
 
     @Test
     public void replaceExpense() {
-        List<Expense> pending = new ArrayList<>();
-        List<Expense> approved = new ArrayList<>();
-        List<Expense> denied = new ArrayList<>();
+        int index = rand.nextInt(expenses.size());
+        Expense pendingExpense = new Expense(expenses.get(index));
 
-        expenses.forEach(exp -> {
-            switch (exp.getStatus().name()) {
-                case "PENDING":
-                    pending.add(exp);
-                    break;
-                case "APPROVED":
-                    approved.add(exp);
-                    break;
-                case "DENIED":
-                    denied.add(exp);
-                    break;
-            }
-        });
-
-        int index = rand.nextInt(pending.size());
-        int temp = expenses.indexOf(pending.get(index));
-        Expense pendingExpense = new Expense(pending.get(index));
-
-        pendingExpense.setStatus(Expense.Status.DENIED);
+        pendingExpense.setAmount(pendingExpense.getAmount()*2);
         Expense received = service.replaceExpense(pendingExpense);
         Assertions.assertNotNull(received);
-        Assertions.assertEquals(Expense.Status.DENIED, received.getStatus());
+        Assertions.assertEquals(expenses.get(index).getAmount()*2, received.getAmount());
 
-        expenses.set(temp, received);
+        expenses.set(index, received);
 
-        index = rand.nextInt(approved.size());
-        Expense approvedExpense = new Expense(approved.get(index));
+        Expense approvedExpense = service.getExpenseById(approvedId);
 
         Assertions.assertThrows(ExpenseNotPendingException.class, () -> {
             approvedExpense.setAmount(550);
             Assertions.assertNull(service.replaceExpense(approvedExpense));
         }, "Replacing approved expense did not throw an exception.");
 
-
-        index = rand.nextInt(denied.size());
-        Expense deniedExpense = new Expense(denied.get(index));
+        Expense deniedExpense = service.getExpenseById(deniedId);
 
         Assertions.assertThrows(ExpenseNotPendingException.class, () -> {
             deniedExpense.setAmount(550);
             Assertions.assertNull(service.replaceExpense(deniedExpense));
         }, "Replacing denied expense did not throw an exception.");
+    }
+
+    @Test
+    public void negativeExpenseThrowsExceptionDuringInsert() {
+        // NegativeExpenseException thrown if you try to create a negative expense
+        // Negative expense is not inserted.
+        int length = service.getAllExpenses().size();
+        Assertions.assertThrows(NonpositiveExpenseException.class, () -> {
+            Expense exp = new Expense();
+            exp.setDate(100);
+            exp.setAmount(-1);
+            exp.setStatus(Expense.Status.PENDING);
+            exp.setIssuer(0);
+            Assertions.assertNull(service.createExpense(exp));
+        }, "Issue with negativeExpenseThrown test: expected thrown exception not found during createExpense call.");
+        Assertions.assertEquals(length, service.getAllExpenses().size(), "Issue with negativeExpenseThrown test: negative expense was added to database during createExpense call.");
+    }
+
+    @Test
+    public void negativeExpenseThrowsExceptionDuringReplace() {
+        // NegativeExpenseException thrown if you try to create a negative expense
+        // Negative expense is not inserted.
+        int index = rand.nextInt(expenses.size());
+        Expense exp = expenses.get(index);
+
+        Expense received = new Expense();
+        received.setId(exp.getId());
+        received.setDate(exp.getDate());
+        received.setStatus(exp.getStatus());
+        received.setIssuer(exp.getIssuer());
+        received.setAmount(-100);
+
+        Assertions.assertThrows(NonpositiveExpenseException.class, () -> {
+            Assertions.assertNull(service.replaceExpense(received));
+        }, "Issue with negativeExpenseThrown test: expected thrown exception not found during replaceExpense call.");
+        Assertions.assertEquals(exp.getAmount(), service.getExpenseById(exp.getId()).getAmount(), "Issue with negativeExpenseThrown test: expense with negative amount allowed to overwrite existing expense.");
     }
 }

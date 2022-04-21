@@ -15,9 +15,6 @@ public class TestEmployeeDAO {
         empDao = new PostgresEmployeeDAO();
         Employee emp = new Employee();
 
-        Assertions.assertThrows(InvalidEmployeeException.class, () -> {
-            empDao.createEmployee(emp);
-        });
         emp.setFirstName("Testing");
         emp.setLastName("Testing");
         Employee received = empDao.createEmployee(emp);

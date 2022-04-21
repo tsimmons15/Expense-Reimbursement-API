@@ -1,10 +1,7 @@
 package dev.simmons.data;
 
 import dev.simmons.entities.Expense;
-import dev.simmons.exceptions.ExpenseNotPendingException;
-import dev.simmons.exceptions.InvalidExpenseException;
-import dev.simmons.exceptions.InvalidExpenseStatusException;
-import dev.simmons.exceptions.NonpositiveExpenseException;
+import dev.simmons.exceptions.*;
 import dev.simmons.utilities.connection.PostgresConnection;
 import dev.simmons.utilities.logging.Logger;
 import org.postgresql.util.PSQLException;
@@ -16,18 +13,6 @@ import java.util.List;
 public class PostgresExpenseDAO implements ExpenseDAO{
     @Override
     public Expense createExpense(Expense expense) {
-        if (expense.getStatus() == null) {
-            throw new InvalidExpenseStatusException("Unable to parse the status passed in. Check for typos.");
-        }
-        if (expense.getStatus() != Expense.Status.PENDING && expense.getIssuer() == 0) {
-            // Invalid expense: won't be able to edit (can't edit a non-pending expense) but can't assign to an employee.
-            throw new InvalidExpenseException("Unable to submit a non-pending expense not yet assigned an issuer.");
-        }
-
-        if (expense.getAmount() <= 0) {
-            throw new NonpositiveExpenseException(expense.getAmount());
-        }
-
         try (Connection conn = PostgresConnection.getConnection()) {
             String sql = "insert into expense (amount, status, date, issuer) values (?,?,?,?);";
             PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -42,7 +27,7 @@ public class PostgresExpenseDAO implements ExpenseDAO{
 
             int updated = statement.executeUpdate();
             if (updated != 1) {
-                Logger.log(Logger.Level.ERROR, "Unable to insert expense (" + expense + ").");
+                Logger.log(Logger.Level.WARNING, "Unable to insert expense (" + expense + ").");
                 return null;
             }
             ResultSet rs = statement.getGeneratedKeys();
@@ -52,6 +37,10 @@ public class PostgresExpenseDAO implements ExpenseDAO{
 
             return expense;
         } catch (SQLException se) {
+            if (se.getSQLState().equals("23503")) {
+                Logger.log(Logger.Level.WARNING, "Attempt to create expense for a non-existent employee with id " + expense.getIssuer());
+                throw new NoSuchEmployeeException("No such employee exists with id " + expense.getIssuer());
+            }
             Logger.log(Logger.Level.ERROR, se);
         }
         return null;
@@ -75,6 +64,12 @@ public class PostgresExpenseDAO implements ExpenseDAO{
 
             return exp;
         } catch (SQLException se) {
+            System.out.println("getExpenseById: " + se.getSQLState());
+            if (se.getSQLState().equals("24000")) {
+                Logger.log(Logger.Level.WARNING, "Search for non-existent expense with id " + id);
+                throw new NoSuchExpenseException("No expense with id " + id + " was found. Make sure there is an expense with that id.");
+            }
+
             Logger.log(Logger.Level.ERROR, se);
         }
         return null;
@@ -162,12 +157,6 @@ public class PostgresExpenseDAO implements ExpenseDAO{
 
     @Override
     public Expense replaceExpense(Expense expense) {
-        if (expense.getStatus() != Expense.Status.PENDING && expense.getIssuer() <= 0) {
-            throw new InvalidExpenseException("Unable to submit a non-pending expense not yet assigned an issuer.");
-        }
-        if (expense.getAmount() <= 0) {
-            throw new NonpositiveExpenseException(expense.getAmount());
-        }
         try (Connection conn = PostgresConnection.getConnection()) {
             String sql = "update expense set amount = ?, status = ?, " +
                     "date = ?, issuer = ? where expense_id = ?;";
@@ -185,14 +174,18 @@ public class PostgresExpenseDAO implements ExpenseDAO{
             int updated = statement.executeUpdate();
             if (updated != 1) {
                 Logger.log(Logger.Level.WARNING, "Unable to update " + expense + ".");
-                return null;
+                throw new NoSuchExpenseException("No expense matching (" + expense + ") was found. Make sure the expense exists.");
             }
 
             return expense;
-        } catch (PSQLException pse) {
-            Logger.log(Logger.Level.WARNING, "Attempt to replace contents of non-pending expense.");
-            throw new ExpenseNotPendingException(expense.getId());
         } catch (SQLException se) {
+            if (se.getSQLState().equals("23503")) {
+                throw new InvalidEmployeeException("Employee " + expense.getIssuer() + " does not exist.");
+            } else if (se.getSQLState().equals("P0001")) {
+                Logger.log(Logger.Level.WARNING, "Attempt to replace contents of non-pending expense.");
+                throw new ExpenseNotPendingException(expense.getId());
+            }
+
             Logger.log(Logger.Level.ERROR, se);
         }
         return null;
@@ -207,12 +200,17 @@ public class PostgresExpenseDAO implements ExpenseDAO{
 
             int updated = statement.executeUpdate();
             if (updated != 1) {
-                Logger.log(Logger.Level.ERROR, "Unable to delete expense (" + id + ").");
-                return false;
+                Logger.log(Logger.Level.WARNING, "Attempt to delete expense with id " + id + " unsuccessful because no expense was found.");
+                throw new NoSuchExpenseException("Unable to find an expense with id (" + id + "). Make sure there is an expense with this id.");
             }
 
             return true;
         } catch (SQLException se) {
+            if (se.getSQLState().equals("P0001")) {
+                Logger.log(Logger.Level.WARNING, "Attempt to delete non-pending expense.");
+                throw new ExpenseNotPendingException(id);
+            }
+
             Logger.log(Logger.Level.ERROR, se);
         }
         return false;

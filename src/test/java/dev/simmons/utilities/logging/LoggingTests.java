@@ -14,7 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class LoggingTests {
-    @Test
+    /*@Test
     public void writeLocation() throws IOException {
         File file = new File("./test.txt");
         if (!file.exists()) {
@@ -102,6 +102,5 @@ public class LoggingTests {
         } catch (IOException ioe) {
             Assertions.fail();
         }
-    }
-
+    }*/
 }
