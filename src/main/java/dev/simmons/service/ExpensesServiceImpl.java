@@ -37,7 +37,7 @@ public class ExpensesServiceImpl implements ExpensesService{
         if (employee.getFirstName() == null || employee.getLastName() == null ||
                 employee.getFirstName().equals("") || employee.getLastName().equals("")) {
             Logger.log(Logger.Level.WARNING, "Attempt to create an employee with invalid first/last name.");
-            throw new InvalidEmployeeException("Invalid employee name. Must provide first and last name.");
+            throw new InvalidEmployeeException();
         }
         return empDao.createEmployee(employee);
     }
@@ -77,7 +77,7 @@ public class ExpensesServiceImpl implements ExpensesService{
         if (employee.getFirstName() == null || employee.getLastName() == null ||
             employee.getFirstName().equals("") || employee.getLastName().equals("")) {
             Logger.log(Logger.Level.WARNING, "Attempt to replace an employee with invalid first/last name.");
-            throw new InvalidEmployeeException("Invalid employee name. Must provide first and last name.");
+            throw new InvalidEmployeeException();
         }
         return empDao.replaceEmployee(employee);
     }

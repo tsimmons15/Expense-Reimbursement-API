@@ -18,8 +18,18 @@ import io.javalin.http.Context;
 import java.util.List;
 import java.util.Objects;
 public class WebApp {
+    private static final int port = 5000;
     private static ExpensesService service;
     private static Gson gson;
+
+    private static final String status = "status";
+    private static final String index = "index";
+    private static final String index_path = "/{" + index + "}";
+    private static final String employees = "/employees";
+    private static final String expenses = "/expenses";
+    private static final String employeeById = employees + index_path;
+    private static final String expenseById = expenses + index_path;
+
 
     public static void main(String[] args) {
         service = new ExpensesServiceImpl(new PostgresEmployeeDAO(), new PostgresExpenseDAO());
@@ -38,26 +48,26 @@ public class WebApp {
          * +      Employee Routes      +
          * +++++++++++++++++++++++++++++
          */
-        server.post("/employees",           WebApp::handleCreateEmployee);
-        server.get("/employees",            WebApp::handleGetEmployees);
-        server.get("/employees/{index}",    WebApp::handleGetEmployee);
-        server.put("/employees/{index}",    WebApp::handleReplaceEmployee);
-        server.delete("/employees/{index}", WebApp::handleDeleteEmployee);
+        server.post(employees,          WebApp::handleCreateEmployee);
+        server.get(employees,           WebApp::handleGetEmployees);
+        server.get(employeeById,        WebApp::handleGetEmployee);
+        server.put(employeeById,        WebApp::handleReplaceEmployee);
+        server.delete(employeeById,     WebApp::handleDeleteEmployee);
 
         /*
          * ++++++++++++++++++++++++++++
          * +      Expense Routes      +
          * ++++++++++++++++++++++++++++
          */
-        server.post("/expenses",                   WebApp::handleCreateExpense);
-        server.post("/employees/{index}/expenses", WebApp::handleAssigningExpense);
-        server.get("/expenses",                    WebApp::handleGetExpenses);
-        server.get("/expenses/{index}",            WebApp::handleGetExpense);
-        server.get("/employees/{index}/expenses",  WebApp::handleGetEmployeeExpenses);
-        server.put("/expenses/{index}",            WebApp::handleReplaceExpense);
-        server.patch("/expenses/{index}/approve",  WebApp::handleExpenseApproval);
-        server.patch("/expenses/{index}/deny",     WebApp::handleExpenseDenial);
-        server.delete("/expenses/{index}",         WebApp::handleExpenseDeletion);
+        server.post(expenses,                        WebApp::handleCreateExpense);
+        server.post(employeeById + expenses,    WebApp::handleAssigningExpense);
+        server.get(expenses,                         WebApp::handleGetExpenses);
+        server.get(expenseById,                      WebApp::handleGetExpense);
+        server.get(employeeById + expenses,     WebApp::handleGetEmployeeExpenses);
+        server.put(expenseById,                      WebApp::handleReplaceExpense);
+        server.patch(expenseById + "/approve",  WebApp::handleExpenseApproval);
+        server.patch(expenseById + "/deny",     WebApp::handleExpenseDenial);
+        server.delete(expenseById,                   WebApp::handleExpenseDeletion);
 
         /*
          * ++++++++++++++++++++++++++++++++++++++
@@ -107,12 +117,11 @@ public class WebApp {
         });
         server.exception(EmployeeExpenseNotPendingException.class, (ex, ctx) -> {
            ctx.status(bad_request);
-           String response = formatResponse(error,
-                   "Unable to delete employee because they have an approved or denied expense request.");
+           String response = formatResponse(error, ex.getMessage());
            ctx.result(response);
         });
 
-        server.start(5000);
+        server.start(port);
     }
 
 
@@ -130,7 +139,7 @@ public class WebApp {
         String response;
         int status = ok;
 
-        String param = ctx.pathParam("index") + "";
+        String param = ctx.pathParam(index) + "";
         int id = Integer.parseInt(param);
         if (service.deleteExpense(id)) {
             ctx.status(ok);
@@ -148,12 +157,11 @@ public class WebApp {
         String response;
         int status = ok;
 
-        String param = ctx.pathParam("index") + "";
+        String param = ctx.pathParam(index) + "";
         int id = Integer.parseInt(param);
         Expense exp = service.getExpenseById(id);
         if (exp == null) {
-            throw new NoSuchExpenseException("Unable to find expense" +
-                    " matching (id: " + id + ").");
+            throw new NoSuchExpenseException(id);
         }
         exp.setStatus(Expense.Status.DENIED);
         exp = service.replaceExpense(exp);
@@ -174,11 +182,11 @@ public class WebApp {
         String response;
         int status = ok;
 
-        String param = ctx.pathParam("index") + "";
+        String param = ctx.pathParam(index) + "";
         int id = Integer.parseInt(param);
         Expense exp = service.getExpenseById(id);
         if (exp == null) {
-            throw new NoSuchExpenseException("Unable to find expense with id " + id);
+            throw new NoSuchExpenseException(id);
         }
         exp.setStatus(Expense.Status.APPROVED);
         exp = service.replaceExpense(exp);
@@ -199,14 +207,14 @@ public class WebApp {
         String response;
         int status = ok;
 
-        int index = Integer.parseInt(ctx.pathParam("index"));
+        int id = Integer.parseInt(ctx.pathParam(index));
         Expense expense = gson.fromJson(ctx.body(), Expense.class);
         if (expense == null) {
             status = not_found;
             response = formatResponse(error, "Unable to parse the provided expense. " +
                     "Check the sent expense.");
         } else {
-            expense.setId(index);
+            expense.setId(id);
             Expense received = service.replaceExpense(expense);
             if (received == null) {
                 status = internal_error;
@@ -225,7 +233,7 @@ public class WebApp {
     private static void handleGetEmployeeExpenses(Context ctx) {
         String response;
 
-        String param = ctx.pathParam("index") + "";
+        String param = ctx.pathParam(index) + "";
         int id = Integer.parseInt(param);
         List<Expense> expenses = service.getExpensesByEmployee(id);
 
@@ -240,7 +248,7 @@ public class WebApp {
         String response;
         int status = ok;
 
-        String param = ctx.pathParam("index") + "";
+        String param = ctx.pathParam(index) + "";
 
         int id = Integer.parseInt(param);
         Expense exp = service.getExpenseById(id);
@@ -260,7 +268,7 @@ public class WebApp {
 
         List<Expense> expenses;
         if (ctx.queryString() != null && !Objects.equals(ctx.queryString(), "")) {
-            String query = ctx.queryParam("status");
+            String query = ctx.queryParam(status);
             try {
                 query = query.toUpperCase();
                 expenses = service.getExpensesByStatus(Expense.Status.valueOf(query));
@@ -280,7 +288,7 @@ public class WebApp {
     private static void handleAssigningExpense(Context ctx) {
         String response;
         int status = ok;
-        String param = ctx.pathParam("index") + "";
+        String param = ctx.pathParam(index) + "";
         int id;
         Expense exp;
         id = Integer.parseInt(param);
@@ -337,7 +345,7 @@ public class WebApp {
     }
 
     private static void handleDeleteEmployee(Context ctx) {
-        String param = ctx.pathParam("index") + "";
+        String param = ctx.pathParam(index) + "";
         int id = Integer.parseInt(param);
 
         String response;
@@ -355,7 +363,7 @@ public class WebApp {
     }
 
     private static void handleReplaceEmployee(Context ctx) {
-        String param = ctx.pathParam("index") + "";
+        String param = ctx.pathParam(index) + "";
         int id = Integer.parseInt(param);
         Employee emp = gson.fromJson(ctx.body(), Employee.class);
         emp.setId(id);
@@ -376,11 +384,11 @@ public class WebApp {
     }
 
     private static void handleGetEmployee(Context ctx) {
-        String param = ctx.pathParam("index") + "";
+        String param = ctx.pathParam(index) + "";
         int id = Integer.parseInt(param);
         Employee emp = service.getEmployeeById(id);
         if (emp == null) {
-            throw new NoSuchEmployeeException("Unable to find employee with id " + id);
+            throw new NoSuchEmployeeException(id);
         }
         ctx.status(ok);
         ctx.result(formatResponse(result, gson.toJson(emp)));
