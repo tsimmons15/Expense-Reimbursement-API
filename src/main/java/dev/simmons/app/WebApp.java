@@ -30,10 +30,7 @@ public class WebApp {
          * +      Landing Route      +
          * +++++++++++++++++++++++++++
          */
-        server.get("/", ctx -> {
-           ctx.status(200);
-        });
-
+        server.get("/", ctx -> ctx.status(200) );
 
         /*
          * +++++++++++++++++++++++++++++
