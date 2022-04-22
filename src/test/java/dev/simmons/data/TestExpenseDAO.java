@@ -8,12 +8,12 @@ import org.junit.jupiter.api.*;
 import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class TestExpenseDAO {
+class TestExpenseDAO {
     private static ExpenseDAO expDao;
     private static Expense expense;
 
     @BeforeAll
-    public static void setup() {
+    static void setup() {
         expDao = new PostgresExpenseDAO();
         Expense exp = new Expense();
         exp.setAmount(100);
@@ -25,7 +25,7 @@ public class TestExpenseDAO {
     }
 
     @AfterAll
-    public static void teardown() {
+    static void teardown() {
         Assertions.assertTrue(expDao.deleteExpense(expense.getId()), "Issue with deleteExpense in teardown: unable to delete test expense.");
         Assertions.assertThrows(NoSuchExpenseException.class, () -> {
             expDao.getExpenseById(expense.getId());
@@ -34,20 +34,20 @@ public class TestExpenseDAO {
 
     @Test
     @Order(1)
-    public void getExpenseById() {
+    void getExpenseById() {
         Expense received = expDao.getExpenseById(expense.getId());
         Assertions.assertNotNull(received, "Issue with the getExpenseById in test 2: expected not null.");
     }
 
     @Test
     @Order(2)
-    public void getAllExpenses() {
+    void getAllExpenses() {
         Assertions.assertNotEquals(0, expDao.getAllExpenses().size(), "Issue with the getAllExpenses method in test 3: expected length of > 0");
     }
 
     @Test
     @Order(3)
-    public void getExpensesByStatus() {
+    void getExpensesByStatus() {
         List<Expense> expenses = expDao.getExpensesByStatus(Expense.Status.PENDING);
         Assertions.assertNotNull(expenses);
         Assertions.assertNotEquals(0, expenses.size(), "Issue with the getExpensesByStatus method in test 4: expected list length > 0");
@@ -59,7 +59,7 @@ public class TestExpenseDAO {
 
     @Test
     @Order(4)
-    public void getAllExpensesByEmployee() {
+    void getAllExpensesByEmployee() {
         EmployeeDAO empDao = new PostgresEmployeeDAO();
         Employee employee = empDao.getEmployeeById(1);
 

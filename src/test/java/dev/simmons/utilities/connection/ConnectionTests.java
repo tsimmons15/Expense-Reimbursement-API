@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class ConnectionTests {
+class ConnectionTests {
     @Test
-    public void canConnect() {
+    void canConnect() {
         try (Connection connection = PostgresConnection.getConnection()) {
             Assertions.assertNotNull(connection);
             Assertions.assertEquals("expenses", connection.getCatalog());

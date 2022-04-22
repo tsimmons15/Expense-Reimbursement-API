@@ -3,9 +3,9 @@ package dev.simmons.entities;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class ExpenseTests {
+class ExpenseTests {
     @Test
-    public void testEquality() {
+    void testEquality() {
         Expense exp1 = new Expense();
         Expense exp2 = new Expense();
         Assertions.assertEquals("Expense(0) for $0.00", exp1.toString());
