@@ -108,7 +108,7 @@ public class ExpensesServiceImpl implements ExpensesService{
         if (expenses != null) {
             int nonpendingCount = expenses.stream().mapToInt(e -> (e.getStatus().equals(Expense.Status.PENDING)) ? 0 : 1).reduce(0, (i,j) -> i+j);
             if (nonpendingCount > 0) {
-                Logger.log(Logger.Level.WARNING, "Attempt to delete employee (" + id + ") which has non-pending expense requests.");
+                Logger.log(Logger.Level.WARNING, "Attempt to delete employee matching (id: " + id + ") which has non-pending expense requests.");
                 throw new EmployeeExpenseNotPendingException();
             }
 

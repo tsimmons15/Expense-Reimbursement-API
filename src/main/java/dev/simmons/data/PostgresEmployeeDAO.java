@@ -23,7 +23,7 @@ public class PostgresEmployeeDAO implements EmployeeDAO{
 
             int updated = statement.executeUpdate();
             if (updated != 1) {
-                Logger.log(Logger.Level.WARNING, "Unable to insert employee (" + employee + ").");
+                Logger.log(Logger.Level.WARNING, "Failed to create employee(" + employee + ").");
                 return null;
             }
             ResultSet rs = statement.getGeneratedKeys();
@@ -55,8 +55,8 @@ public class PostgresEmployeeDAO implements EmployeeDAO{
             return employee;
         } catch (SQLException se) {
             if (se.getSQLState().equals("24000")) {
-                Logger.log(Logger.Level.ERROR, "Search for non-existent employee with id " + id);
-                throw new NoSuchEmployeeException("No employee with id (" + id + ") was found. Make sure an employee with that id exists.");
+                Logger.log(Logger.Level.ERROR, "Search for non-existent employee with id: " + id);
+                throw new NoSuchEmployeeException("No employee matching (id: " + id + ") was found. Make sure an employee with that id exists.");
             }
             Logger.log(Logger.Level.ERROR, se);
         }
