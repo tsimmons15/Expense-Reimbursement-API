@@ -12,12 +12,7 @@ create table expense (
 	issuer int
 );
 
-select * from employee;
-
 alter table expense add constraint exp_employee_fk foreign key(issuer) references Employee(employee_id);
-
---alter table expense drop column expense_amount;
---alter table expense add column expense_amount float not null check(expense_amount > 0);
 
 create function checkExpenseStatus() 
 returns trigger
@@ -28,19 +23,36 @@ begin
 		raise exception 'Attempt to update a non-pending expense.';
 		return null;
 	end if;
+	if (TG_OP = 'DELETE') then
+		return old;
+	end if;
 	return new;
 end; $$
 
-drop function checkexpensestatus;
 
-create trigger checkStatus before update on expense
+
+create trigger checkStatusOnUpdate before update on expense
 for each row
 execute function checkExpenseStatus();
 
-drop trigger checkStatus on expense;
+create trigger checkStatusOnDelete before delete on expense
+for each row 
+execute function checkExpenseStatus();
 
-insert into expense (amount, status, date) values (
-	-100, 'PENDING', 1000
+drop trigger checkStatusOnUpdate on expense;
+drop trigger checkStatusOnDelete on expense;
+drop function checkexpensestatus;
+drop table employee;
+drop table expense;
+
+insert into employee (first_name, last_name) values (
+	'Not a', 'Real Employee'
+);
+insert into expense (amount, status, date, issuer) values (
+	1234566789, 'APPROVED', 123456789, 1
+);
+insert into expense (amount, status, date, issuer) values (
+	1234566789, 'DENIED', 123456789, 1
 );
 
 select * from employee;

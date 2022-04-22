@@ -2,6 +2,7 @@ package dev.simmons.data;
 
 import dev.simmons.entities.Employee;
 import dev.simmons.exceptions.InvalidEmployeeException;
+import dev.simmons.exceptions.NoSuchEmployeeException;
 import org.junit.jupiter.api.*;
 import java.util.List;
 
@@ -53,6 +54,8 @@ public class TestEmployeeDAO {
     @Order(5)
     public void deleteEmployee() {
         Assertions.assertTrue(empDao.deleteEmployee(employee.getId()));
-        Assertions.assertNull(empDao.getEmployeeById(employee.getId()));
+        Assertions.assertThrows(NoSuchEmployeeException.class, () -> {
+            empDao.getEmployeeById(employee.getId());
+        });
     }
 }

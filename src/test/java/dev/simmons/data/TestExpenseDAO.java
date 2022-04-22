@@ -2,13 +2,9 @@ package dev.simmons.data;
 
 import dev.simmons.entities.Employee;
 import dev.simmons.entities.Expense;
-import dev.simmons.exceptions.ExpenseNotPendingException;
-import dev.simmons.exceptions.InvalidExpenseException;
-import dev.simmons.exceptions.NonpositiveExpenseException;
+import dev.simmons.exceptions.NoSuchExpenseException;
 import org.junit.jupiter.api.*;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -31,7 +27,9 @@ public class TestExpenseDAO {
     @AfterAll
     public static void teardown() {
         Assertions.assertTrue(expDao.deleteExpense(expense.getId()), "Issue with deleteExpense in teardown: unable to delete test expense.");
-        Assertions.assertNull(expDao.getExpenseById(expense.getId()), "Issue with deleteExpense in teardown: deleted test expense still found.");
+        Assertions.assertThrows(NoSuchExpenseException.class, () -> {
+            expDao.getExpenseById(expense.getId());
+        }, "Issue with deleteExpense in teardown: deleted test expense still found.");
     }
 
     @Test
@@ -63,11 +61,7 @@ public class TestExpenseDAO {
     @Order(4)
     public void getAllExpensesByEmployee() {
         EmployeeDAO empDao = new PostgresEmployeeDAO();
-        Employee employee = new Employee();
-        employee.setFirstName("Testing");
-        employee.setLastName("Testing");
-        employee = empDao.createEmployee(employee);
-        Assertions.assertNotNull(employee, "Issue with the createEmployee method in test 5: expected not null.");
+        Employee employee = empDao.getEmployeeById(1);
 
         expense.setIssuer(employee.getId());
         expense = expDao.replaceExpense(expense);
@@ -84,7 +78,5 @@ public class TestExpenseDAO {
         expense.setIssuer(0);
         expense = expDao.replaceExpense(expense);
         Assertions.assertNotNull(expense);
-        Assertions.assertTrue(empDao.deleteEmployee(employee.getId()));
-        Assertions.assertNull(empDao.getEmployeeById(employee.getId()));
     }
 }

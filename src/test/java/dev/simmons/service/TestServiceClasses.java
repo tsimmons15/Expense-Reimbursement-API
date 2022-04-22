@@ -4,9 +4,7 @@ import dev.simmons.data.PostgresEmployeeDAO;
 import dev.simmons.data.PostgresExpenseDAO;
 import dev.simmons.entities.Employee;
 import dev.simmons.entities.Expense;
-import dev.simmons.exceptions.ExpenseNotPendingException;
-import dev.simmons.exceptions.InvalidExpenseException;
-import dev.simmons.exceptions.NonpositiveExpenseException;
+import dev.simmons.exceptions.*;
 import org.junit.jupiter.api.*;
 
 import java.time.LocalDateTime;
@@ -57,17 +55,16 @@ public class TestServiceClasses {
         }
     }
 
-
     @AfterAll
     public static void teardown() {
         expenses.forEach((exp) -> {
             Assertions.assertTrue(service.deleteExpense(exp.getId()));
-            Assertions.assertNull(service.getExpenseById(exp.getId()));
+            Assertions.assertThrows(NoSuchExpenseException.class, () -> service.getExpenseById(exp.getId()));
         });
 
         employees.forEach((emp) -> {
             Assertions.assertTrue(service.deleteEmployee(emp.getId()));
-            Assertions.assertNull(service.getEmployeeById(emp.getId()));
+            Assertions.assertThrows(NoSuchEmployeeException.class, () -> service.getEmployeeById(emp.getId()));
         });
     }
 
