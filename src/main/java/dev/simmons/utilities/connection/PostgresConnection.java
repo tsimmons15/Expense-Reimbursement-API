@@ -14,6 +14,9 @@ public class PostgresConnection {
     private static final String username = System.getenv("POSTGRES_USERNAME");
     private static final String url = System.getenv("POSTGRES_AWS");
 
+    private PostgresConnection() {
+
+    }
     /**
      * Get connection with stored connection information.
      * @return A database connection if successfully connected, null otherwise.

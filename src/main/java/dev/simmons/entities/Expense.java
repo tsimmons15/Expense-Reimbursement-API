@@ -86,5 +86,5 @@ public class Expense implements Comparable<Expense>{
 
     public enum Status {
       PENDING, APPROVED, DENIED
-    };
+    }
 }

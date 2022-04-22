@@ -3,9 +3,9 @@ package dev.simmons.entities;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class EmployeeTests {
+class EmployeeTests {
     @Test
-    public void testEquality() {
+    void testEquality() {
         Employee emp1 = new Employee();
         Employee emp2 = new Employee();
         Assertions.assertEquals("#0", emp1.toString());

@@ -11,12 +11,12 @@ import org.junit.jupiter.api.Order;
 import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class TestEmployeeDAO {
+class TestEmployeeDAO {
     private static EmployeeDAO empDao;
     private static Employee employee;
     @Test
     @Order(1)
-    public void createAnEmployee() {
+    void createAnEmployee() {
         empDao = new PostgresEmployeeDAO();
         Employee emp = new Employee();
 
@@ -30,21 +30,21 @@ public class TestEmployeeDAO {
 
     @Test
     @Order(2)
-    public void getEmployee() {
+    void getEmployee() {
         Employee emp = empDao.getEmployeeById(employee.getId());
         Assertions.assertEquals(employee, emp);
     }
 
     @Test
     @Order(3)
-    public void getAllEmployees() {
+    void getAllEmployees() {
         List<Employee> emps = empDao.getAllEmployees();
         Assertions.assertNotEquals(0, emps.size());
     }
 
     @Test
     @Order(4)
-    public void replaceEmployee() {
+    void replaceEmployee() {
         Employee newEmp = new Employee();
         newEmp.setId(employee.getId());
         newEmp.setFirstName("Different");
@@ -56,7 +56,7 @@ public class TestEmployeeDAO {
 
     @Test
     @Order(5)
-    public void deleteEmployee() {
+    void deleteEmployee() {
         Assertions.assertTrue(empDao.deleteEmployee(employee.getId()));
         Assertions.assertThrows(NoSuchEmployeeException.class, () -> {
             empDao.getEmployeeById(employee.getId());

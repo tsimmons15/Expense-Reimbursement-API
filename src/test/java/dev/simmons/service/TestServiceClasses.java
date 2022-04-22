@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-public class TestServiceClasses {
+ class TestServiceClasses {
     private static ExpensesService service;
     private static List<Employee> employees;
     private static List<Expense> expenses;
@@ -25,7 +25,7 @@ public class TestServiceClasses {
     private static final int deniedId = 2;
 
     @BeforeAll
-    public static void setup() {
+     static void setup() {
         service = new ExpensesServiceImpl(new PostgresEmployeeDAO(), new PostgresExpenseDAO());
         employees = new ArrayList<>();
         expenses = new ArrayList<>();
@@ -56,7 +56,7 @@ public class TestServiceClasses {
     }
 
     @AfterAll
-    public static void teardown() {
+     static void teardown() {
         expenses.forEach((exp) -> {
             Assertions.assertTrue(service.deleteExpense(exp.getId()));
             Assertions.assertThrows(NoSuchExpenseException.class, () -> service.getExpenseById(exp.getId()));
@@ -69,28 +69,28 @@ public class TestServiceClasses {
     }
 
     @Test
-    public void getExpenseById() {
+     void getExpenseById() {
         int index = rand.nextInt(expenses.size());
         Expense e = expenses.get(index);
         Assertions.assertEquals(e, service.getExpenseById(e.getId()));
     }
 
     @Test
-    public void getEmployeeById() {
+     void getEmployeeById() {
         int index = rand.nextInt(employees.size());
         Employee e = employees.get(index);
         Assertions.assertEquals(e, service.getEmployeeById(e.getId()));
     }
 
     @Test
-    public void getAllExpenses() {
+     void getAllExpenses() {
         List<Expense> received = service.getAllExpenses();
         Assertions.assertNotNull(received);
         Assertions.assertTrue(received.size() >= expenses.size());
     }
 
     @Test
-    public void getExpensesByStatus() {
+     void getExpensesByStatus() {
         List<Expense> pending = service.getExpensesByStatus(Expense.Status.PENDING);
         List<Expense> testPending = expenses.stream().filter(exp -> exp.getStatus().equals(Expense.Status.PENDING)).collect(Collectors.toList());
         Assertions.assertNotNull(pending);
@@ -99,7 +99,7 @@ public class TestServiceClasses {
     }
 
     @Test
-    public void getExpensesByEmployee() {
+     void getExpensesByEmployee() {
         int index = rand.nextInt(employees.size());
         Employee e = employees.get(index);
         List<Expense> expenseList = service.getExpensesByEmployee(e.getId());
@@ -108,14 +108,14 @@ public class TestServiceClasses {
     }
 
     @Test
-    public void getAllEmployees() {
+     void getAllEmployees() {
         List<Employee> employeeList = service.getAllEmployees();
         Assertions.assertNotNull(employeeList);
         Assertions.assertTrue(employeeList.size() >= employees.size());
     }
 
     @Test
-    public void replaceEmployee() {
+     void replaceEmployee() {
         int index = rand.nextInt(employees.size());
         Employee e = employees.get(index);
         e.setFirstName("Changed");
@@ -130,7 +130,7 @@ public class TestServiceClasses {
     }
 
     @Test
-    public void replaceExpense() {
+     void replaceExpense() {
         int index = rand.nextInt(expenses.size());
         Expense pendingExpense = new Expense(expenses.get(index));
 
@@ -142,38 +142,37 @@ public class TestServiceClasses {
         expenses.set(index, received);
 
         Expense approvedExpense = service.getExpenseById(approvedId);
+        approvedExpense.setAmount(550);
 
         Assertions.assertThrows(ExpenseNotPendingException.class, () -> {
-            approvedExpense.setAmount(550);
             Assertions.assertNull(service.replaceExpense(approvedExpense));
         }, "Replacing approved expense did not throw an exception.");
 
         Expense deniedExpense = service.getExpenseById(deniedId);
-
+        deniedExpense.setAmount(550);
         Assertions.assertThrows(ExpenseNotPendingException.class, () -> {
-            deniedExpense.setAmount(550);
             Assertions.assertNull(service.replaceExpense(deniedExpense));
         }, "Replacing denied expense did not throw an exception.");
     }
 
     @Test
-    public void negativeExpenseThrowsExceptionDuringInsert() {
+     void negativeExpenseThrowsExceptionDuringInsert() {
         // NegativeExpenseException thrown if you try to create a negative expense
         // Negative expense is not inserted.
         int length = service.getAllExpenses().size();
+        Expense exp = new Expense();
+        exp.setDate(100);
+        exp.setAmount(-1);
+        exp.setStatus(Expense.Status.PENDING);
+        exp.setIssuer(0);
         Assertions.assertThrows(NonpositiveExpenseException.class, () -> {
-            Expense exp = new Expense();
-            exp.setDate(100);
-            exp.setAmount(-1);
-            exp.setStatus(Expense.Status.PENDING);
-            exp.setIssuer(0);
             Assertions.assertNull(service.createExpense(exp));
         }, "Issue with negativeExpenseThrown test: expected thrown exception not found during createExpense call.");
         Assertions.assertEquals(length, service.getAllExpenses().size(), "Issue with negativeExpenseThrown test: negative expense was added to database during createExpense call.");
     }
 
     @Test
-    public void negativeExpenseThrowsExceptionDuringReplace() {
+     void negativeExpenseThrowsExceptionDuringReplace() {
         // NegativeExpenseException thrown if you try to create a negative expense
         // Negative expense is not inserted.
         int index = rand.nextInt(expenses.size());

@@ -1,10 +1,7 @@
 package dev.simmons.data;
 
 import dev.simmons.entities.Employee;
-import dev.simmons.exceptions.ExpenseNotPendingException;
-import dev.simmons.exceptions.InvalidEmployeeException;
 import dev.simmons.exceptions.NoSuchEmployeeException;
-import dev.simmons.exceptions.NoSuchExpenseException;
 import dev.simmons.utilities.connection.PostgresConnection;
 import dev.simmons.utilities.logging.Logger;
 
@@ -13,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PostgresEmployeeDAO implements EmployeeDAO{
+    private static final String emp_id = "employee_id";
+    private static final String emp_first = "first_name";
+    private static final String emp_last = "last_name";
     @Override
     public Employee createEmployee(Employee employee) {
         try (Connection conn = PostgresConnection.getConnection()) {
@@ -48,9 +48,9 @@ public class PostgresEmployeeDAO implements EmployeeDAO{
             ResultSet rs = statement.executeQuery();
             rs.next();
             Employee employee = new Employee();
-            employee.setId(rs.getInt("employee_id"));
-            employee.setFirstName(rs.getString("first_name"));
-            employee.setLastName(rs.getString("last_name"));
+            employee.setId(rs.getInt(emp_id));
+            employee.setFirstName(rs.getString(emp_first));
+            employee.setLastName(rs.getString(emp_last));
 
             return employee;
         } catch (SQLException se) {
@@ -65,26 +65,26 @@ public class PostgresEmployeeDAO implements EmployeeDAO{
 
     @Override
     public List<Employee> getAllEmployees() {
+        List<Employee> employees = new ArrayList<>();
+
         try (Connection conn = PostgresConnection.getConnection()) {
             String sql = "select * from employee;";
             PreparedStatement statement = conn.prepareStatement(sql);
 
-            List<Employee> employees = new ArrayList<>();
             ResultSet rs = statement.executeQuery();
             Employee emp;
             while (rs.next()) {
                 emp = new Employee();
-                emp.setId(rs.getInt("employee_id"));
-                emp.setFirstName(rs.getString("first_name"));
-                emp.setLastName(rs.getString("last_name"));
+                emp.setId(rs.getInt(emp_id));
+                emp.setFirstName(rs.getString(emp_first));
+                emp.setLastName(rs.getString(emp_last));
                 employees.add(emp);
             }
-
-            return employees;
         } catch (SQLException se) {
             Logger.log(Logger.Level.ERROR, se);
         }
-        return null;
+
+        return employees;
     }
 
     @Override

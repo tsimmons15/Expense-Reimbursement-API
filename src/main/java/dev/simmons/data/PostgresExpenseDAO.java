@@ -4,13 +4,17 @@ import dev.simmons.entities.Expense;
 import dev.simmons.exceptions.*;
 import dev.simmons.utilities.connection.PostgresConnection;
 import dev.simmons.utilities.logging.Logger;
-import org.postgresql.util.PSQLException;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PostgresExpenseDAO implements ExpenseDAO{
+    private static final String exp_amount = "amount";
+    private static final String exp_id = "expense_id";
+    private static final String exp_date = "date";
+    private static final String exp_issuer = "issuer";
+    private static final String exp_status = "status";
     @Override
     public Expense createExpense(Expense expense) {
         try (Connection conn = PostgresConnection.getConnection()) {
@@ -56,11 +60,11 @@ public class PostgresExpenseDAO implements ExpenseDAO{
             ResultSet rs = statement.executeQuery();
             Expense exp = new Expense();
             rs.next();
-            exp.setId(rs.getInt("expense_id"));
-            exp.setIssuer(rs.getInt("issuer"));
-            exp.setAmount(rs.getLong("amount"));
-            exp.setDate(rs.getLong("date"));
-            exp.setStatus(Expense.Status.valueOf(rs.getString("status")));
+            exp.setId(rs.getInt(exp_id));
+            exp.setIssuer(rs.getInt(exp_issuer));
+            exp.setAmount(rs.getLong(exp_amount));
+            exp.setDate(rs.getLong(exp_date));
+            exp.setStatus(Expense.Status.valueOf(rs.getString(exp_status)));
 
             return exp;
         } catch (SQLException se) {
@@ -76,82 +80,82 @@ public class PostgresExpenseDAO implements ExpenseDAO{
 
     @Override
     public List<Expense> getAllExpenses() {
+        List<Expense> expenses = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection()) {
             String sql = "select * from expense;";
             PreparedStatement statement = conn.prepareStatement(sql);
 
             ResultSet rs = statement.executeQuery();
-            List<Expense> expenses = new ArrayList<>();
+
             Expense exp;
             while (rs.next()) {
                 exp = new Expense();
-                exp.setIssuer(rs.getInt("issuer"));
-                exp.setId(rs.getInt("expense_id"));
-                exp.setStatus(Expense.Status.valueOf(rs.getString("status")));
-                exp.setDate(rs.getLong("date"));
-                exp.setAmount(rs.getLong("amount"));
+                exp.setIssuer(rs.getInt(exp_issuer));
+                exp.setId(rs.getInt(exp_id));
+                exp.setStatus(Expense.Status.valueOf(rs.getString(exp_status)));
+                exp.setDate(rs.getLong(exp_date));
+                exp.setAmount(rs.getLong(exp_amount));
                 expenses.add(exp);
             }
-
-            return expenses;
         } catch (SQLException se) {
             Logger.log(Logger.Level.ERROR, se);
         }
-        return null;
+
+        return expenses;
     }
 
     @Override
     public List<Expense> getExpensesByStatus(Expense.Status status) {
+        List<Expense> expenses = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection()) {
             String sql = "select * from expense where status = ?;";
             PreparedStatement statement = conn.prepareStatement(sql);
             statement.setString(1, status.name());
 
             ResultSet rs = statement.executeQuery();
-            List<Expense> expenses = new ArrayList<>();
+
             Expense exp;
             while (rs.next()) {
                     exp = new Expense();
-                    exp.setId(rs.getInt("expense_id"));
-                    exp.setStatus(Expense.Status.valueOf(rs.getString("status")));
-                    exp.setIssuer(rs.getInt("issuer"));
-                    exp.setDate(rs.getLong("date"));
-                    exp.setAmount(rs.getLong("amount"));
+                    exp.setId(rs.getInt(exp_id));
+                    exp.setStatus(Expense.Status.valueOf(rs.getString(exp_status)));
+                    exp.setIssuer(rs.getInt(exp_issuer));
+                    exp.setDate(rs.getLong(exp_date));
+                    exp.setAmount(rs.getLong(exp_amount));
                     expenses.add(exp);
             }
-
-            return expenses;
         } catch (SQLException se) {
             Logger.log(Logger.Level.ERROR, se);
         }
-        return null;
+
+        return expenses;
     }
 
     @Override
     public List<Expense> getAllEmployeeExpenses(int employeeId) {
+        List<Expense> expenses = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection()) {
             String sql = "select * from expense where issuer = ?;";
             PreparedStatement statement = conn.prepareStatement(sql);
             statement.setInt(1, employeeId);
 
             ResultSet rs = statement.executeQuery();
-            List<Expense> expenses = new ArrayList<>();
+
             Expense exp;
             while (rs.next()) {
                 exp = new Expense();
-                exp.setId(rs.getInt("expense_id"));
-                exp.setDate(rs.getLong("date"));
-                exp.setIssuer(rs.getInt("issuer"));
-                exp.setStatus(Expense.Status.valueOf(rs.getString("status")));
-                exp.setAmount(rs.getLong("amount"));
+                exp.setId(rs.getInt(exp_id));
+                exp.setDate(rs.getLong(exp_date));
+                exp.setIssuer(rs.getInt(exp_issuer));
+                exp.setStatus(Expense.Status.valueOf(rs.getString(exp_status)));
+                exp.setAmount(rs.getLong(exp_amount));
                 expenses.add(exp);
             }
 
-            return expenses;
         } catch (SQLException se) {
             Logger.log(Logger.Level.ERROR, se);
         }
-        return null;
+        return expenses;
     }
 
     @Override
