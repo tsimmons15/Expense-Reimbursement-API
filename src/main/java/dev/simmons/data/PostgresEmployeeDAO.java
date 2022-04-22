@@ -56,7 +56,7 @@ public class PostgresEmployeeDAO implements EmployeeDAO{
         } catch (SQLException se) {
             if (se.getSQLState().equals("24000")) {
                 Logger.log(Logger.Level.ERROR, "Search for non-existent employee with id: " + id);
-                throw new NoSuchEmployeeException("No employee matching (id: " + id + ") was found. Make sure an employee with that id exists.");
+                throw new NoSuchEmployeeException(id);
             }
             Logger.log(Logger.Level.ERROR, se);
         }
@@ -99,7 +99,7 @@ public class PostgresEmployeeDAO implements EmployeeDAO{
             int updated = statement.executeUpdate();
             if (updated != 1) {
                 Logger.log(Logger.Level.WARNING, "No employee (" + employee + ") found to update.");
-                throw new NoSuchEmployeeException("No employee matching (" + employee + ") was found. Please make sure the employee exists.");
+                throw new NoSuchEmployeeException(employee.getId());
             }
 
             return employee;
@@ -119,7 +119,7 @@ public class PostgresEmployeeDAO implements EmployeeDAO{
             int updated = statement.executeUpdate();
             if (updated != 1) {
                 Logger.log(Logger.Level.WARNING, "Employee (" + id + ") not found to delete.");
-                throw new NoSuchEmployeeException("Unable to delete employee (" + id + "). Check that an employee with that id exists.");
+                throw new NoSuchEmployeeException(id);
             }
 
             return true;

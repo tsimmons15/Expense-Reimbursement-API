@@ -43,7 +43,7 @@ public class PostgresExpenseDAO implements ExpenseDAO{
         } catch (SQLException se) {
             if (se.getSQLState().equals("23503")) {
                 Logger.log(Logger.Level.WARNING, "Attempt to create expense for a non-existent employee with id " + expense.getIssuer());
-                throw new NoSuchEmployeeException("Invalid issuer: No employee matching (id: " + expense.getIssuer() + ") was found.");
+                throw new NoSuchEmployeeException(expense.getIssuer());
             }
             Logger.log(Logger.Level.ERROR, se);
         }
@@ -70,7 +70,7 @@ public class PostgresExpenseDAO implements ExpenseDAO{
         } catch (SQLException se) {
             if (se.getSQLState().equals("24000")) {
                 Logger.log(Logger.Level.WARNING, "Search for non-existent expense with id " + id);
-                throw new NoSuchExpenseException("No expense matching (id: " + id + ") was found. Make sure there is an expense with that id.");
+                throw new NoSuchExpenseException(id);
             }
 
             Logger.log(Logger.Level.ERROR, se);
@@ -177,13 +177,13 @@ public class PostgresExpenseDAO implements ExpenseDAO{
             int updated = statement.executeUpdate();
             if (updated != 1) {
                 Logger.log(Logger.Level.WARNING, "Unable to update " + expense + ".");
-                throw new NoSuchExpenseException("No expense matching (id: " + expense.getId() + ") was found. Make sure there is an expense with that id.");
+                throw new NoSuchExpenseException(expense.getId());
             }
 
             return expense;
         } catch (SQLException se) {
             if (se.getSQLState().equals("23503")) {
-                throw new InvalidEmployeeException("Employee " + expense.getIssuer() + " does not exist.");
+                throw new NoSuchEmployeeException(expense.getIssuer());
             } else if (se.getSQLState().equals("P0001")) {
                 Logger.log(Logger.Level.WARNING, "Attempt to replace contents of non-pending expense.");
                 throw new ExpenseNotPendingException(expense.getId());
@@ -204,7 +204,7 @@ public class PostgresExpenseDAO implements ExpenseDAO{
             int updated = statement.executeUpdate();
             if (updated != 1) {
                 Logger.log(Logger.Level.WARNING, "Attempt to delete expense with id " + id + " unsuccessful because no expense was found.");
-                throw new NoSuchExpenseException("Unable to find an expense matching (id: " + id + "). Make sure there is an expense with this id.");
+                throw new NoSuchExpenseException(id);
             }
 
             return true;
