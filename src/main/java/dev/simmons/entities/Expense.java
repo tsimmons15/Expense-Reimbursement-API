@@ -1,13 +1,27 @@
 package dev.simmons.entities;
 
+import dev.simmons.annotation.DBEntity;
+import dev.simmons.annotation.DbField;
+import dev.simmons.annotation.ForeignKey;
+import dev.simmons.annotation.PrimaryKey;
+import dev.simmons.data.PostgresORM;
+
 import java.text.DecimalFormat;
 import java.util.Objects;
 
+@DBEntity("Expense")
 public class Expense implements Comparable<Expense>{
+    @PrimaryKey
+    @DbField(name = "expense_id", type = PostgresORM.DataTypes.INT)
     private int id;
+    @DbField(name = "amount", type = PostgresORM.DataTypes.BIG_INT)
     private long amount;
+    @DbField(name = "status", type = PostgresORM.DataTypes.STRING)
     private Status status;
+    @DbField(name = "date", type = PostgresORM.DataTypes.BIG_INT)
     private long date;
+    @ForeignKey(references = "Employee", column = "employee_id")
+    @DbField(name = "issuer", type = PostgresORM.DataTypes.INT)
     private int issuer;
 
     public Expense() {

@@ -55,7 +55,7 @@ public class PostgresEmployeeDAO implements EmployeeDAO{
             return employee;
         } catch (SQLException se) {
             if (se.getSQLState().equals("24000")) {
-                Logger.log(Logger.Level.ERROR, "Search for non-existent employee with id: " + id);
+                Logger.log(Logger.Level.WARNING, "Search for non-existent employee with id: " + id);
                 throw new NoSuchEmployeeException(id);
             }
             Logger.log(Logger.Level.ERROR, se);

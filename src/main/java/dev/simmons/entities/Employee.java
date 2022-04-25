@@ -1,17 +1,31 @@
 package dev.simmons.entities;
 
+import dev.simmons.annotation.DBEntity;
+import dev.simmons.annotation.DbField;
+import dev.simmons.annotation.PrimaryKey;
+import dev.simmons.data.PostgresORM;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+@DBEntity("Employee")
 public class Employee implements Comparable<Employee>{
+    @PrimaryKey
+    @DbField(name = "employee_id", type = PostgresORM.DataTypes.INT)
     private int id;
+    @DbField(name = "first_name", type = PostgresORM.DataTypes.STRING)
     private String firstName;
+    @DbField(name = "last_name", type = PostgresORM.DataTypes.STRING)
     private String lastName;
 
     public Employee() {
         firstName = "";
         lastName = "";
+    }
+
+    public Employee(Employee copy) {
+        firstName = String.copyValueOf(copy.getFirstName().toCharArray());
+        lastName = String.copyValueOf(copy.getLastName().toCharArray());
     }
 
     public int getId() {
