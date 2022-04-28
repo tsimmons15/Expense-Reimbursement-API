@@ -164,7 +164,7 @@ import java.util.stream.Collectors;
         exp.setDate(100);
         exp.setAmount(-1);
         exp.setStatus(Expense.Status.PENDING);
-        exp.setIssuer(0);
+        exp.setIssuer(1);
         Assertions.assertThrows(NonpositiveExpenseException.class, () -> {
             Assertions.assertNull(service.createExpense(exp));
         }, "Issue with negativeExpenseThrown test: expected thrown exception not found during createExpense call.");
@@ -190,4 +190,44 @@ import java.util.stream.Collectors;
         }, "Issue with negativeExpenseThrown test: expected thrown exception not found during replaceExpense call.");
         Assertions.assertEquals(exp.getAmount(), service.getExpenseById(exp.getId()).getAmount(), "Issue with negativeExpenseThrown test: expense with negative amount allowed to overwrite existing expense.");
     }
+
+    @Test
+     public void expenseThrowsExceptionInsertingWithNoIssuer() {
+        int index = rand.nextInt(expenses.size());
+        Expense exp = expenses.get(index);
+
+        Expense received = new Expense();
+        received.setAmount(exp.getAmount());
+        received.setId(exp.getId());
+        received.setDate(exp.getDate());
+        received.setStatus(exp.getStatus());
+        received.setIssuer(0);
+
+        Assertions.assertThrows(InvalidExpenseException.class, () -> {
+            Assertions.assertNull(service.createExpense(received));
+        }, "Issue with invalidExpenseThrown test: " +
+                "expected thrown exception not found during createExpense call.");
+        Assertions.assertEquals(exp.getIssuer(), service.getExpenseById(exp.getId()).getIssuer(),
+                "Issue with invalidExpenseThrown test: expense with no issuer allowed to be inserted.");
+    }
+
+     @Test
+     public void expenseThrowsExceptionReplacingWithNoIssuer() {
+         int index = rand.nextInt(expenses.size());
+         Expense exp = expenses.get(index);
+
+         Expense received = new Expense();
+         received.setAmount(exp.getAmount());
+         received.setId(exp.getId());
+         received.setDate(exp.getDate());
+         received.setStatus(exp.getStatus());
+         received.setIssuer(0);
+
+         Assertions.assertThrows(InvalidExpenseException.class, () -> {
+             Assertions.assertNull(service.replaceExpense(received));
+         }, "Issue with noIssuerTest test: expected thrown exception not found during replaceExpense call.");
+         Assertions.assertEquals(exp.getIssuer(), service.getExpenseById(exp.getId()).getIssuer(),
+                 "Issue with InvalidExpenseException test: " +
+                         "expense with no issuer allowed to overwrite existing expense.");
+     }
 }

@@ -58,6 +58,7 @@ It is common for REST routes to be nested
   - returns expenses for employee 120
 - POST /employees/120/expenses
   - adds an expense to employee 120
+    - **Switch to employee 120?**
 
 ## ORM BONUS
 ### DO LAST

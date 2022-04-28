@@ -2,17 +2,18 @@ package dev.simmons.data;
 
 import dev.simmons.entities.Employee;
 import dev.simmons.entities.Expense;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.util.List;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ORMTests {
     private static Employee employee;
     private static Expense expense;
     @Test
+    @Order(1)
     void createEmployee() {
-        DataWrapperORM<Employee> orm = new PostgresORM<>();
+        DataWrapperORM<Employee> orm = new PostgresORM<>(Employee.class);
         Employee emp = new Employee();
         emp.setFirstName("Testing");
         emp.setLastName("Testing");
@@ -29,11 +30,12 @@ class ORMTests {
     }
 
     @Test
+    @Order(2)
     void createExpense() {
-        DataWrapperORM<Expense> orm = new PostgresORM<>();
+        DataWrapperORM<Expense> orm = new PostgresORM<>(Expense.class);
         Expense exp = new Expense();
         exp.setAmount(100000);
-        exp.setIssuer(0);
+        exp.setIssuer(1);
         exp.setStatus(Expense.Status.PENDING);
         exp.setDate(1234567890);
         Expense received = null;
@@ -49,8 +51,9 @@ class ORMTests {
     }
 
     @Test
+    @Order(3)
     void getEmployeeById() {
-        DataWrapperORM<Employee> orm = new PostgresORM<>();
+        DataWrapperORM<Employee> orm = new PostgresORM<>(Employee.class);
         Employee received = null;
         try {
             received = new Employee(orm.getEntityById(employee.getId()));
@@ -63,8 +66,9 @@ class ORMTests {
     }
 
     @Test
+    @Order(4)
     void getAllEmployees() {
-        DataWrapperORM<Employee> orm = new PostgresORM<>();
+        DataWrapperORM<Employee> orm = new PostgresORM<>(Employee.class);
         List<Employee> employees = null;
 
         try {
@@ -78,8 +82,9 @@ class ORMTests {
     }
 
     @Test
+    @Order(5)
     void getExpenseById() {
-        DataWrapperORM<Expense> orm = new PostgresORM<>();
+        DataWrapperORM<Expense> orm = new PostgresORM<>(Expense.class);
         Expense exp = null;
 
         try {
@@ -93,8 +98,9 @@ class ORMTests {
     }
 
     @Test
+    @Order(6)
     void getAllExpenses() {
-        DataWrapperORM<Expense> orm = new PostgresORM<>();
+        DataWrapperORM<Expense> orm = new PostgresORM<>(Expense.class);
         List<Expense> expenses = null;
 
         try {
@@ -108,8 +114,9 @@ class ORMTests {
     }
 
     @Test
+    @Order(7)
     void updateEmployee() {
-        DataWrapperORM<Employee> orm = new PostgresORM<>();
+        DataWrapperORM<Employee> orm = new PostgresORM<>(Employee.class);
         Employee newEmp = new Employee(employee);
         newEmp.setLastName("Real Employee");
 
@@ -125,8 +132,9 @@ class ORMTests {
     }
 
     @Test
+    @Order(8)
     void updateExpense() {
-        DataWrapperORM<Expense> orm = new PostgresORM<>();
+        DataWrapperORM<Expense> orm = new PostgresORM<>(Expense.class);
         Expense newExp = new Expense(expense);
         newExp.setAmount(999999999);
 
@@ -143,8 +151,9 @@ class ORMTests {
     }
 
     @Test
+    @Order(9)
     void deleteEmployee() {
-        DataWrapperORM<Employee> orm = new PostgresORM<>();
+        DataWrapperORM<Employee> orm = new PostgresORM<>(Employee.class);
         try {
             if (!orm.deleteEntity(employee.getId())) {
                 Assertions.fail("Employee unsuccessfully deleted.");
@@ -158,8 +167,9 @@ class ORMTests {
     }
 
     @Test
+    @Order(10)
     void deleteExpense() {
-        DataWrapperORM<Expense> orm = new PostgresORM<>();
+        DataWrapperORM<Expense> orm = new PostgresORM<>(Expense.class);
         try {
             if (!orm.deleteEntity(expense.getId())) {
                 Assertions.fail("Expense unsuccessfully deleted.");

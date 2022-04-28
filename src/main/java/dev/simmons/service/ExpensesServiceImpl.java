@@ -26,6 +26,9 @@ public class ExpensesServiceImpl implements ExpensesService{
         if (expense.getStatus() != Expense.Status.PENDING) {
             throw new InvalidExpenseException("Unable to submit a non-pending expense. Submitted expenses must be approved or denied separately.");
         }
+        if (expense.getIssuer() <= 0) {
+            throw new InvalidExpenseException("Unable to submit a expense with no associated employee. Please identify the owning employee.");
+        }
         if (expense.getAmount() <= 0) {
             throw new NonpositiveExpenseException(expense.getAmount());
         }
@@ -88,9 +91,9 @@ public class ExpensesServiceImpl implements ExpensesService{
             Logger.log(Logger.Level.WARNING, "Null/misspelled status was passed in to replace expense.");
             throw new InvalidExpenseStatusException("Unable to parse the status passed in. Check for typos.");
         }
-        if (expense.getStatus() != Expense.Status.PENDING && expense.getIssuer() <= 0) {
-            Logger.log(Logger.Level.WARNING, "Attempt to submit a non-pending expense with no issuer assigned.");
-            throw new InvalidExpenseException("Unable to submit a non-pending expense not yet assigned an issuer.");
+        if (expense.getIssuer() <= 0) {
+            Logger.log(Logger.Level.WARNING, "Attempt to submit an expense with no issuer assigned.");
+            throw new InvalidExpenseException("Unable to submit an expense not yet assigned an issuer.");
         }
         if (expense.getAmount() <= 0) {
             Logger.log(Logger.Level.WARNING, "Attempt to submit an expense with a negative amount.");

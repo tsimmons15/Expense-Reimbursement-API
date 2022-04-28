@@ -10,5 +10,4 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DbField {
     String name();
-    PostgresORM.DataTypes type();
 }

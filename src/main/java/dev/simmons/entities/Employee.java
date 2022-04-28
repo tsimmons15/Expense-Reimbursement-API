@@ -11,11 +11,11 @@ import java.util.Objects;
 @DBEntity("Employee")
 public class Employee implements Comparable<Employee>{
     @PrimaryKey
-    @DbField(name = "employee_id", type = PostgresORM.DataTypes.INT)
+    @DbField(name = "employee_id")
     private int id;
-    @DbField(name = "first_name", type = PostgresORM.DataTypes.STRING)
+    @DbField(name = "first_name")
     private String firstName;
-    @DbField(name = "last_name", type = PostgresORM.DataTypes.STRING)
+    @DbField(name = "last_name")
     private String lastName;
 
     public Employee() {

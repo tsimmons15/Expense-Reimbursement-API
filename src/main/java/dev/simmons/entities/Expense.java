@@ -12,16 +12,16 @@ import java.util.Objects;
 @DBEntity("Expense")
 public class Expense implements Comparable<Expense>{
     @PrimaryKey
-    @DbField(name = "expense_id", type = PostgresORM.DataTypes.INT)
+    @DbField(name = "expense_id")
     private int id;
-    @DbField(name = "amount", type = PostgresORM.DataTypes.BIG_INT)
+    @DbField(name = "amount")
     private long amount;
-    @DbField(name = "status", type = PostgresORM.DataTypes.STRING)
+    @DbField(name = "status")
     private Status status;
-    @DbField(name = "date", type = PostgresORM.DataTypes.BIG_INT)
+    @DbField(name = "date")
     private long date;
     @ForeignKey(references = "Employee", column = "employee_id")
-    @DbField(name = "issuer", type = PostgresORM.DataTypes.INT)
+    @DbField(name = "issuer")
     private int issuer;
 
     public Expense() {
@@ -99,6 +99,11 @@ public class Expense implements Comparable<Expense>{
     }
 
     public enum Status {
-      PENDING, APPROVED, DENIED
+      PENDING, APPROVED, DENIED;
+
+      @Override
+      public String toString() {
+          return this.name();
+      }
     }
 }

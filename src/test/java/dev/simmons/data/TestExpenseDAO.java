@@ -19,6 +19,7 @@ class TestExpenseDAO {
         exp.setAmount(100);
         exp.setDate(100);
         exp.setStatus(Expense.Status.PENDING);
+        exp.setIssuer(1);
 
         expense = expDao.createExpense(exp);
         Assertions.assertNotNull(expense, "Issue with the createExpense method in test setup: null expense was returned from create.");
@@ -36,13 +37,13 @@ class TestExpenseDAO {
     @Order(1)
     void getExpenseById() {
         Expense received = expDao.getExpenseById(expense.getId());
-        Assertions.assertNotNull(received, "Issue with the getExpenseById in test 2: expected not null.");
+        Assertions.assertNotNull(received, "Issue with the getExpenseById in test 1: expected not null.");
     }
 
     @Test
     @Order(2)
     void getAllExpenses() {
-        Assertions.assertNotEquals(0, expDao.getAllExpenses().size(), "Issue with the getAllExpenses method in test 3: expected length of > 0");
+        Assertions.assertNotEquals(0, expDao.getAllExpenses().size(), "Issue with the getAllExpenses method in test 2: expected length of > 0");
     }
 
     @Test
@@ -50,7 +51,7 @@ class TestExpenseDAO {
     void getExpensesByStatus() {
         List<Expense> expenses = expDao.getExpensesByStatus(Expense.Status.PENDING);
         Assertions.assertNotNull(expenses);
-        Assertions.assertNotEquals(0, expenses.size(), "Issue with the getExpensesByStatus method in test 4: expected list length > 0");
+        Assertions.assertNotEquals(0, expenses.size(), "Issue with the getExpensesByStatus method in test 3: expected list length > 0");
 
         for (Expense e : expenses) {
             Assertions.assertEquals(Expense.Status.PENDING, e.getStatus());
@@ -63,20 +64,12 @@ class TestExpenseDAO {
         EmployeeDAO empDao = new PostgresEmployeeDAO();
         Employee employee = empDao.getEmployeeById(1);
 
-        expense.setIssuer(employee.getId());
-        expense = expDao.replaceExpense(expense);
-        Assertions.assertNotNull(expense, "Issue with the replaceExpense method in test 5: expected not null.");
-
         List<Expense> expenses = expDao.getAllEmployeeExpenses(employee.getId());
         Assertions.assertNotNull(expenses);
-        Assertions.assertNotEquals(0, expenses.size(), "Issue with the getAllEmployeeExpenses method in test 5: expected list length > 0");
+        Assertions.assertNotEquals(0, expenses.size(), "Issue with the getAllEmployeeExpenses method in test 4: expected list length > 0");
 
         for(Expense e : expenses) {
-            Assertions.assertEquals(employee.getId(), e.getIssuer(), "Issue with test 5, the queries where clause: expenses from employees other than the requested one returned.");
+            Assertions.assertEquals(employee.getId(), e.getIssuer(), "Issue with test 4, the queries where clause: expenses from employees other than the requested one returned.");
         }
-
-        expense.setIssuer(0);
-        expense = expDao.replaceExpense(expense);
-        Assertions.assertNotNull(expense);
     }
 }

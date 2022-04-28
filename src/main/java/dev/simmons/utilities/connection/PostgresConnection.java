@@ -10,9 +10,10 @@ import java.sql.SQLException;
  * Static class holding connection information for connection to the postgreSQL database.
  */
 public class PostgresConnection {
+	private static final String db = "expenses";
     private static final String password = System.getenv("POSTGRES_PASSWORD");
     private static final String username = System.getenv("POSTGRES_USERNAME");
-    private static final String url = System.getenv("POSTGRES_AWS");
+    private static final String url = System.getenv("POSTGRES_AWS") + "/" + db;
 
     private PostgresConnection() {
 
