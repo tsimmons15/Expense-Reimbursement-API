@@ -3,7 +3,9 @@ package dev.simmons.data;
 import dev.simmons.entities.Employee;
 import dev.simmons.entities.Expense;
 import org.junit.jupiter.api.*;
+import org.postgresql.util.PSQLException;
 
+import java.sql.SQLException;
 import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -159,8 +161,10 @@ class ORMTests {
                 Assertions.fail("Employee unsuccessfully deleted.");
             }
 
-            Employee received = orm.getEntityById(employee.getId());
-            Assertions.assertNull(received);
+            Assertions.assertThrows(SQLException.class, () -> {
+                orm.getEntityById(employee.getId());
+            }, "Deleting employee # " + employee.getId() + " did not succeed as we were able to retrieve them.");
+
         } catch (Exception e) {
             Assertions.fail(e);
         }
@@ -175,8 +179,10 @@ class ORMTests {
                 Assertions.fail("Expense unsuccessfully deleted.");
             }
 
-            Expense received = orm.getEntityById(expense.getId());
-            Assertions.assertNull(received);
+            Assertions.assertThrows(SQLException.class, () -> {
+                orm.getEntityById(expense.getId());
+            }, "Deleting expense " + expense.getId() + " did not work since we were able to retrieve them.");
+
         } catch (Exception e) {
             Assertions.fail(e);
         }

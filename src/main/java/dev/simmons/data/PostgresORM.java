@@ -22,7 +22,8 @@ public class PostgresORM<T> implements DataWrapperORM<T>{
 
     private final Class<T> typeClass;
     protected Field[] fields;
-    protected Map<String, Method> methods;
+    protected Map<String, Method> getters;
+    protected Map<String, Method> setters;
     protected String table;
 
     protected final String createSql;
@@ -292,23 +293,23 @@ public class PostgresORM<T> implements DataWrapperORM<T>{
         String columnName = field.getAnnotation(DbField.class).name();
         Method setter = getSetter(this.typeClass, field);
         Object obj = null;
-        switch (field.getGenericType().toString().toLowerCase()) {
+        switch (field.getType().getName().toLowerCase()) {
             case "long":
-            case "class java.lang.long":
+            case "java.lang.long":
                 obj = rs.getLong(columnName);
                 break;
             case "int":
-            case "class java.lang.integer":
+            case "java.lang.integer":
                 obj = rs.getInt(columnName);
                 break;
             case "java.lang.string":
                 obj = rs.getString(columnName);
                 break;
             case "float":
-            case "class java.lang.float":
+            case "java.lang.float":
                 obj = rs.getFloat(columnName);
                 break;
-            case "class dev.simmons.entities.Expense$Status":
+            case "dev.simmons.entities.Expense$Status":
                 obj = Expense.Status.valueOf(rs.getString(columnName));
                 break;
         }

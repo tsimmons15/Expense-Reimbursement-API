@@ -24,6 +24,7 @@ public class Employee implements Comparable<Employee>{
     }
 
     public Employee(Employee copy) {
+        id = copy.getId();
         firstName = String.copyValueOf(copy.getFirstName().toCharArray());
         lastName = String.copyValueOf(copy.getLastName().toCharArray());
     }

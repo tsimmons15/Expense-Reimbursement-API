@@ -1,7 +1,6 @@
 package dev.simmons.service;
 
-import dev.simmons.data.PostgresEmployeeDAO;
-import dev.simmons.data.PostgresExpenseDAO;
+import dev.simmons.data.PostgresORM;
 import dev.simmons.entities.Employee;
 import dev.simmons.entities.Expense;
 import dev.simmons.exceptions.*;
@@ -14,7 +13,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
- class TestServiceClasses {
+class TestORMServiceClass {
     private static ExpensesService service;
     private static List<Employee> employees;
     private static List<Expense> expenses;
@@ -25,8 +24,8 @@ import java.util.stream.Collectors;
     private static final int deniedId = 2;
 
     @BeforeAll
-     static void setup() {
-        service = new ExpensesServiceImpl(new PostgresEmployeeDAO(), new PostgresExpenseDAO());
+    static void setup() {
+        service = new ORMExpensesService(new PostgresORM<>(Employee.class), new PostgresORM<>(Expense.class));
         employees = new ArrayList<>();
         expenses = new ArrayList<>();
         rand = new Random();
@@ -43,20 +42,20 @@ import java.util.stream.Collectors;
 
         for (int i = 0; i < 10; i++) {
             int id = employees.get(rand.nextInt(employees.size())).getId();
-             Expense exp = new Expense();
-             exp.setDate(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
-             exp.setAmount((long)(rand.nextDouble() * 10000));
-             exp.setIssuer(id);
-             exp.setStatus(Expense.Status.PENDING);
-             exp = service.createExpense(exp);
-             Assertions.assertNotNull(exp);
-             Assertions.assertNotEquals(0, exp.getId());
-             expenses.add(exp);
+            Expense exp = new Expense();
+            exp.setDate(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
+            exp.setAmount((long)(rand.nextDouble() * 10000));
+            exp.setIssuer(id);
+            exp.setStatus(Expense.Status.PENDING);
+            exp = service.createExpense(exp);
+            Assertions.assertNotNull(exp);
+            Assertions.assertNotEquals(0, exp.getId());
+            expenses.add(exp);
         }
     }
 
     @AfterAll
-     static void teardown() {
+    static void teardown() {
         expenses.forEach((exp) -> {
             Assertions.assertTrue(service.deleteExpense(exp.getId()));
             Assertions.assertThrows(NoSuchExpenseException.class, () -> service.getExpenseById(exp.getId()));
@@ -69,28 +68,28 @@ import java.util.stream.Collectors;
     }
 
     @Test
-     void getExpenseById() {
+    void getExpenseById() {
         int index = rand.nextInt(expenses.size());
         Expense e = expenses.get(index);
         Assertions.assertEquals(e, service.getExpenseById(e.getId()));
     }
 
     @Test
-     void getEmployeeById() {
+    void getEmployeeById() {
         int index = rand.nextInt(employees.size());
         Employee e = employees.get(index);
         Assertions.assertEquals(e, service.getEmployeeById(e.getId()));
     }
 
     @Test
-     void getAllExpenses() {
+    void getAllExpenses() {
         List<Expense> received = service.getAllExpenses();
         Assertions.assertNotNull(received);
         Assertions.assertTrue(received.size() >= expenses.size());
     }
 
     @Test
-     void getExpensesByStatus() {
+    void getExpensesByStatus() {
         List<Expense> pending = service.getExpensesByStatus(Expense.Status.PENDING);
         List<Expense> testPending = expenses.stream().filter(exp -> exp.getStatus().equals(Expense.Status.PENDING)).collect(Collectors.toList());
         Assertions.assertNotNull(pending);
@@ -99,7 +98,7 @@ import java.util.stream.Collectors;
     }
 
     @Test
-     void getExpensesByEmployee() {
+    void getExpensesByEmployee() {
         int index = rand.nextInt(employees.size());
         Employee e = employees.get(index);
         List<Expense> expenseList = service.getExpensesByEmployee(e.getId());
@@ -108,14 +107,14 @@ import java.util.stream.Collectors;
     }
 
     @Test
-     void getAllEmployees() {
+    void getAllEmployees() {
         List<Employee> employeeList = service.getAllEmployees();
         Assertions.assertNotNull(employeeList);
         Assertions.assertTrue(employeeList.size() >= employees.size());
     }
 
     @Test
-     void replaceEmployee() {
+    void replaceEmployee() {
         int index = rand.nextInt(employees.size());
         Employee e = employees.get(index);
         e.setFirstName("Changed");
@@ -130,7 +129,7 @@ import java.util.stream.Collectors;
     }
 
     @Test
-     void replaceExpense() {
+    void replaceExpense() {
         int index = rand.nextInt(expenses.size());
         Expense pendingExpense = new Expense(expenses.get(index));
 
@@ -156,7 +155,7 @@ import java.util.stream.Collectors;
     }
 
     @Test
-     void negativeExpenseThrowsExceptionDuringInsert() {
+    void negativeExpenseThrowsExceptionDuringInsert() {
         // NegativeExpenseException thrown if you try to create a negative expense
         // Negative expense is not inserted.
         int length = service.getAllExpenses().size();
@@ -172,7 +171,7 @@ import java.util.stream.Collectors;
     }
 
     @Test
-     void negativeExpenseThrowsExceptionDuringReplace() {
+    void negativeExpenseThrowsExceptionDuringReplace() {
         // NegativeExpenseException thrown if you try to create a negative expense
         // Negative expense is not inserted.
         int index = rand.nextInt(expenses.size());
@@ -192,7 +191,7 @@ import java.util.stream.Collectors;
     }
 
     @Test
-     public void expenseThrowsExceptionInsertingWithNoIssuer() {
+    public void expenseThrowsExceptionInsertingWithNoIssuer() {
         int index = rand.nextInt(expenses.size());
         Expense exp = expenses.get(index);
 
@@ -211,23 +210,23 @@ import java.util.stream.Collectors;
                 "Issue with invalidExpenseThrown test: expense with no issuer allowed to be inserted.");
     }
 
-     @Test
-     public void expenseThrowsExceptionReplacingWithNoIssuer() {
-         int index = rand.nextInt(expenses.size());
-         Expense exp = expenses.get(index);
+    @Test
+    public void expenseThrowsExceptionReplacingWithNoIssuer() {
+        int index = rand.nextInt(expenses.size());
+        Expense exp = expenses.get(index);
 
-         Expense received = new Expense();
-         received.setAmount(exp.getAmount());
-         received.setId(exp.getId());
-         received.setDate(exp.getDate());
-         received.setStatus(exp.getStatus());
-         received.setIssuer(0);
+        Expense received = new Expense();
+        received.setAmount(exp.getAmount());
+        received.setId(exp.getId());
+        received.setDate(exp.getDate());
+        received.setStatus(exp.getStatus());
+        received.setIssuer(0);
 
-         Assertions.assertThrows(InvalidExpenseException.class, () -> {
-             Assertions.assertNull(service.replaceExpense(received));
-         }, "Issue with noIssuerTest test: expected thrown exception not found during replaceExpense call.");
-         Assertions.assertEquals(exp.getIssuer(), service.getExpenseById(exp.getId()).getIssuer(),
-                 "Issue with InvalidExpenseException test: " +
-                         "expense with no issuer allowed to overwrite existing expense.");
-     }
+        Assertions.assertThrows(InvalidExpenseException.class, () -> {
+            Assertions.assertNull(service.replaceExpense(received));
+        }, "Issue with noIssuerTest test: expected thrown exception not found during replaceExpense call.");
+        Assertions.assertEquals(exp.getIssuer(), service.getExpenseById(exp.getId()).getIssuer(),
+                "Issue with InvalidExpenseException test: " +
+                        "expense with no issuer allowed to overwrite existing expense.");
+    }
 }
