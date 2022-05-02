@@ -3,6 +3,7 @@ package dev.simmons.app;
 import com.google.gson.JsonSyntaxException;
 import dev.simmons.data.PostgresEmployeeDAO;
 import dev.simmons.data.PostgresExpenseDAO;
+import dev.simmons.data.PostgresORM;
 import dev.simmons.entities.Employee;
 import dev.simmons.entities.Expense;
 import dev.simmons.exceptions.*;
@@ -11,6 +12,7 @@ import dev.simmons.service.ExpensesServiceImpl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dev.simmons.service.ORMExpensesService;
 import dev.simmons.utilities.logging.Logger;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
@@ -32,7 +34,9 @@ public class WebApp {
 
 
     public static void main(String[] args) {
-        service = new ExpensesServiceImpl(new PostgresEmployeeDAO(), new PostgresExpenseDAO());
+        service = new ORMExpensesService(new PostgresORM<>(Employee.class), new PostgresORM<>(Expense.class));
+        //service = new ExpensesServiceImpl(new PostgresEmployeeDAO(), new PostgresExpenseDAO());
+
         Javalin server = Javalin.create();
         gson = new GsonBuilder().create();
 
@@ -108,6 +112,10 @@ public class WebApp {
            ctx.result(formatResponse(error, ex.getMessage()));
         });
         server.exception(NoSuchEmployeeException.class, (ex, ctx) -> {
+            ctx.status(not_found);
+            ctx.result(formatResponse(error, ex.getMessage()));
+        });
+        server.exception(NoSuchEntityException.class, (ex, ctx) -> {
             ctx.status(not_found);
             ctx.result(formatResponse(error, ex.getMessage()));
         });

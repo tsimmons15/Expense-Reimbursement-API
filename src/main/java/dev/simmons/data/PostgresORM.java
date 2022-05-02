@@ -2,7 +2,6 @@ package dev.simmons.data;
 
 import dev.simmons.annotation.DBEntity;
 import dev.simmons.annotation.DbField;
-import dev.simmons.annotation.ForeignKey;
 import dev.simmons.annotation.PrimaryKey;
 import dev.simmons.entities.Expense;
 import dev.simmons.exceptions.NoSuchEntityException;
@@ -309,7 +308,7 @@ public class PostgresORM<T> implements DataWrapperORM<T>{
             case "java.lang.float":
                 obj = rs.getFloat(columnName);
                 break;
-            case "dev.simmons.entities.Expense$Status":
+            case "dev.simmons.entities.expense$status":
                 obj = Expense.Status.valueOf(rs.getString(columnName));
                 break;
         }
