@@ -36,13 +36,18 @@ The Employee Reimbursement System (ERS) is a REST API that helps manage the proc
   - RDS PotgreSQL instance
 - Github
 
-## Getting Started
- - The project is written in Java, so make sure you have at least Java. The specific version used was corretto-1.8 (v1.8.0_322) but any version of Java past Java 8 should work. ![Link to download Java](https://www.oracle.com/java/technologies/downloads/)
- - The project is packaged with Maven, specifically 3.8.5. ![Link to find the download for Maven](https://maven.apache.org/download.cgi)
- - Three system variables need to be set up to store the database location, password and username.
-   - POSTGRES_AWS needs to be jdbc:postgresql:<your server location/url>:5432
-   - POSTGRES_PASSWORD needs to be the password for the database.
-   - POSTGRES_USER needs to be the username for the database.
+## Demo
+If you wish to demo the site: ![click here](http://expenseproject1-env.eba-r5bxm7bn.us-east-1.elasticbeanstalk.com/employees)
+
+## Getting Started Locally
+ - For set up instructions to run it locally
+   - The project is written in Java, so make sure you have at least Java. The specific version used was corretto-1.8 (v1.8.0_322) but any version of Java past Java 8 should work. ![Link to download Java](https://www.oracle.com/java/technologies/downloads/)
+   - The project is packaged with Maven, specifically 3.8.5. ![Link to find the download for Maven](https://maven.apache.org/download.cgi)
+   - The project uses a PostgreSQL database in the backend. ![If you need to install an instance locally.](https://www.postgresql.org/download/)
+   - Three system variables need to be set up to store the database location, password and username.
+     - POSTGRES_AWS needs to be jdbc:postgresql:<your server location/url>:5432
+     - POSTGRES_PASSWORD needs to be the password for the database.
+     - POSTGRES_USER needs to be the username for the database.
 ### Building
 After downloading everything and setting up your environment, in the root folder with the *pom.xml* file run:
 ```bash
