@@ -1,12 +1,93 @@
-# Expense Reimburesement API
+# EXPENSE REIMBURSEMENT API
 
-## Objective
+## Project Description
+
 The Employee Reimbursement System (ERS) is a REST API that helps manage the process of reimbursing employees for expenses. 
 
-### Requirements
- - Employees can be created and edited via the API. 
- - Expenses for employees can be added and updated to pending and approved. 
- - Approved/Denied expenses can not be edited.
+## Technologies Used
+
+ * Java - build 15
+ * Maven - version 3.8.5
+   * Maven-shade-plugin - version 3.3.0
+   * Maven-surefire-plugin - version 2.22.2
+ * JUnit Jupiter - version 5.8.2
+   * JUnit Platform suite - version 1.8.2
+ * Javalin - version 4.4.0
+ * GSON - version 2.9.0
+ * PostgreSQL - version 42.2.25
+
+## Features
+
+
+
+## Getting Started
+   
+To clone: `git clone https://github.com/tsimmons15.git`
+
+### Setup
+ * Getting started with Java: ![Link to download Java](https://www.oracle.com/java/technologies/downloads/)
+ * Getting started with Maven: ![Link to find the download for Maven](https://maven.apache.org/download.cgi)
+ * Getting started with Postman: ![Download Postman to handle making requests](https://www.postman.com/downloads/)
+ * Getting started with PostgreSQL: ![If you need to install an instance locally.](https://www.postgresql.org/download/)
+   * Alternatively, using an AWS RDS instance: ![Getting started with an AWS RDS PostgreSQL instance.](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_GettingStarted.CreatingConnecting.PostgreSQL.html)
+   * Once the PostgreSQL database is set up run the following script to create the database structure.
+```PostgreSQL
+create database expenses;
+
+create table employee (
+	employee_id serial primary key,
+	first_name varchar(30) not null,
+	last_name varchar(30) not null
+);
+
+create table expense (
+	expense_id serial primary key,
+	amount bigint not null check(amount > 0),
+	status varchar(8) not null,
+	date bigint not null,
+	issuer int
+);
+
+alter table expense add constraint exp_employee_fk foreign key(issuer) references Employee(employee_id);
+
+create function checkExpenseStatus() 
+returns trigger
+language plpgsql
+as $$
+begin
+	if (old.status != 'PENDING') then
+		raise exception 'Attempt to update a non-pending expense.';
+		return null;
+	end if;
+	if (TG_OP = 'DELETE') then
+		return old;
+	end if;
+	return new;
+end; $$
+
+
+
+create trigger checkStatusOnUpdate before update on expense
+for each row
+execute function checkExpenseStatus();
+
+create trigger checkStatusOnDelete before delete on expense
+for each row 
+execute function checkExpenseStatus();
+```
+
+ * After downloading everything and setting up your environment, in the root folder with the *pom.xml* file run the following in either a terminal(Mac/Linux) or cmd(Windows):
+```
+  mvn package -f pom.xml
+  cd ./target
+  java -jar timothy_simmons_p1-1.0.jar
+```
+
+## Usage
+
+From Postman, the routes you can handle are below, with a little information about what to expect for each.
+
+ * Valid JSON for the entities is:
  - A valid employee:
   ```javascript
     {
@@ -24,41 +105,7 @@ The Employee Reimbursement System (ERS) is a REST API that helps manage the proc
      }
   ```
 
-## Technologies
- - Java
-   - Javalin
-   - JDBC
-   - Custom ORM
-   - Custom Logger
-- PostgreSQL
-- AWS
-  - Elastic Beanstalk
-  - RDS PotgreSQL instance
-- Github
-
-## Demo
-If you wish to demo the site: ![click here](http://expenseproject1-env.eba-r5bxm7bn.us-east-1.elasticbeanstalk.com/employees)
-
-## Getting Started Locally
- - For set up instructions to run it locally
-   - The project is written in Java, so make sure you have at least Java. The specific version used was corretto-1.8 (v1.8.0_322) but any version of Java past Java 8 should work. ![Link to download Java](https://www.oracle.com/java/technologies/downloads/)
-   - The project is packaged with Maven, specifically 3.8.5. ![Link to find the download for Maven](https://maven.apache.org/download.cgi)
-   - The project uses a PostgreSQL database in the backend. ![If you need to install an instance locally.](https://www.postgresql.org/download/)
-   - Three system variables need to be set up to store the database location, password and username.
-     - POSTGRES_AWS needs to be jdbc:postgresql:<your server location/url>:5432
-     - POSTGRES_PASSWORD needs to be the password for the database.
-     - POSTGRES_USER needs to be the username for the database.
-### Building
-After downloading everything and setting up your environment, in the root folder with the *pom.xml* file run:
-```bash
-  mvn package -f pom.xml
-  cd ./target
-  java -jar timothy_simmons_p1-1.0.jar
-```
-### Usage
- The routes handled by the API
-- GET /
-  - returning a default 200 OK
+ * Routes
 - GET /employees
   - returns the list of employees
 - GET /employees/{id}
@@ -89,3 +136,7 @@ After downloading everything and setting up your environment, in the root folder
   - will attempt to deny the specified expense
 - DELETE /expenses/{id}
   - attempts to delete the provided expense
+
+## License
+
+This project uses the following license: [The Unlicense](https://choosealicense.com/licenses/unlicense/).
